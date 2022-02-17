@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://github.com/tannermeade/data-migrator/blob/master/.github/assets/data_migrator.svg?raw=true" height="128">
   <h1 align="center">Data Migrator</h1>
+  <p align="center">🚧 Alpha version - Use with care. 🚧</p>
 </p>
 
 
@@ -17,6 +18,38 @@ Data Migrator can do much more (and we are just getting started)
 
 If you want to say thank you, star us on GitHub  🙌💙
 
+<img src="https://github.com/tannermeade/data-migrator/blob/master/.github/assets/data_migrator-screenshot.png?raw=true" height="600">
+
+## Quickstart
+
+The purpose of Data Migrator is to provide a universal translator for data by being portable, diverse, and efficient in migrating and converting data across discrete schemas.
+
+Data Migrator provides powerful and flexible tooling in the form of 3 categories of code:
+1. Schema Representation
+2. A Conversion Pipeline
+3. Diverse Toolchain of Data Origins
+
+#### Schema Representation
+
+Data Migrator represents schemas in a flexible manner that supports flat schema data stores like tabular data (csv & sql) and schema-less deep data stores like JSON.
+
+<img src="https://github.com/tannermeade/data-migrator/blob/master/.github/assets/schema_representation.png?raw=true" height="600">
+
+#### A Conversion Pipeline
+
+The conversion pipeline is meant to be asyncronous as it handles packets of data that are streamed through the conversion type adapters. Data Migrator is built to have a diverse and extendable toolchain of adapters to convert any data type to another.
+
+It is even designed to handle source fields that can hold several data types being converted to a destination with several completely different data types. It handles this by generating, creating, and editing the conversion type adapters where you can define exactly what source data type gets converted to which destination data type for each individual field.
+
+<img src="https://github.com/tannermeade/data-migrator/blob/master/.github/assets/conversion_pipeline.png?raw=true" height="300">
+
+#### Diverse Toolchain of Data Origins
+
+Data Migrator uses adapters called `DataOrigin`s that handle all the responsibilities of the source and destination of the data. The provide configuration, data stream, data sink, and schema validation interfaces.
+
+For `DataOrigin`s that involve schema-less data stores, they are responsible for generating a schema for the data. In the case of CSV tabular data, the data types are not stored in the built in schema, so the CSV `DataOrigin` will scan the data to generate the data types that fit in each field.
+
+Right now, Data Migrator is focusing on developing the CSV and Appwrite `DataOrigin`s. After the mean features have been built out and tested, the next `DataOrigin` is Firebase.
 
 ### License
 
