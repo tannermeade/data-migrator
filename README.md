@@ -24,6 +24,17 @@ If you want to say thank you, star us on GitHub  🙌💙
 
 The purpose of Data Migrator is to provide a universal translator for data by being portable, diverse, and efficient in migrating and converting data across discrete schemas.
 
+Right now, it is only developed against macOS (Windows and Linux will be officially developed against soon). It shouldn't be too hard to get it running on those targets though.
+
+To get it running on macOS, [install Flutter](https://docs.flutter.dev/get-started/install/macos "install Flutter") and make sure to add the flutter tool to your path.
+
+Then make sure to run `flutter config --enable-macos-desktop ` to enable the macOS target.
+
+Clone this repo, navigate to the directory in terminal, and execute `flutter run`. Choose macOS for the target if it prompts you.
+
+## Architecture
+
+
 Data Migrator provides powerful and flexible tooling in the form of 3 categories of code:
 1. Schema Representation
 2. A Conversion Pipeline
