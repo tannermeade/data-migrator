@@ -58,9 +58,9 @@ It is even designed to handle source fields that can hold several data types bei
 
 Data Migrator uses adapters called `DataOrigin`s that handle all the responsibilities of the source and destination of the data. The provide configuration, data stream, data sink, and schema validation interfaces.
 
-For `DataOrigin`s that involve schema-less data stores, they are responsible for generating a schema for the data. In the case of CSV tabular data, the data types are not stored in the built in schema, so the CSV `DataOrigin` will scan the data to generate the data types that fit in each field.
+For `DataOrigin`s that involve schema-less data stores, they are responsible for generating a schema for the data. In the case of CSV tabular data, the data types are not stored in the built-in schema, so the CSV `DataOrigin` will scan the data to generate the data types that fit in each field.
 
-Right now, Data Migrator is focusing on developing the CSV and Appwrite `DataOrigin`s. After the mean features have been built out and tested, the next `DataOrigin` is Firebase.
+Right now, Data Migrator is focusing on developing the CSV and Appwrite `DataOrigin`s. After the main features have been built out and tested, the next `DataOrigin` will be Firebase.
 
 ### License
 

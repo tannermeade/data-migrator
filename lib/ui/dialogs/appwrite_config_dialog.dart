@@ -47,7 +47,7 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
   void initState() {
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
-    _endpointController = TextEditingController(text: "http://45.79.56.43/v1");
+    _endpointController = TextEditingController(text: "");
     _apiKeyController = TextEditingController(text: widget.data.dataOrigin.currentAPIKey);
     _bundleSizeController = TextEditingController(text: widget.data.dataOrigin.bundleByteSize.toString());
 
