@@ -1,0 +1,27 @@
+Metadata-Version: 2.1
+Name: appwrite
+Version: 0.6.0
+Summary: Appwrite is an open-source self-hosted backend server that abstract and simplify complex and repetitive development tasks behind a very simple REST API
+Home-page: https://appwrite.io/support
+Author: Appwrite Team
+Author-email: team@appwrite.io
+Maintainer: Appwrite Team
+Maintainer-email: team@appwrite.io
+License: BSD-3-Clause
+Download-URL: https://github.com/appwrite/sdk-for-python/archive/0.6.0.tar.gz
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Environment :: Web Environment
+Classifier: Topic :: Software Development
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Requires-Dist: requests
+
+UNKNOWN
+
+

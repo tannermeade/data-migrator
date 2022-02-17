@@ -1,0 +1,4 @@
+enum Origin {
+  source,
+  destination,
+}
