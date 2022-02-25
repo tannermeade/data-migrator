@@ -100,22 +100,22 @@ class _AddFieldDialogState extends State<AddFieldDialog> with TickerProviderStat
   void _resetDataType() {
     switch (tabController.index) {
       case 0:
-        field.types = [SchemaString(type: StringType.text)];
+        field = SchemaField.copyWith(field, types: [SchemaString(type: StringType.text)]);
         break;
       case 1:
-        field.types = [SchemaInt(type: IntType.int)];
+        field = SchemaField.copyWith(field, types: [SchemaInt(type: IntType.int)]);
         break;
       case 2:
-        field.types = [SchemaFloat(type: FloatType.float)];
+        field = SchemaField.copyWith(field, types: [SchemaFloat(type: FloatType.float)]);
         break;
       case 3:
-        field.types = [SchemaEnum(elements: [])];
+        field = SchemaField.copyWith(field, types: [SchemaEnum(elements: [])]);
         break;
       case 4:
-        field.types = [SchemaDate(type: DateType.timestamp)];
+        field = SchemaField.copyWith(field, types: [SchemaDate(type: DateType.timestamp)]);
         break;
       case 5:
-        field.types = [SchemaBoolean()];
+        field = SchemaField.copyWith(field, types: [SchemaBoolean()]);
         break;
       default:
     }
@@ -286,6 +286,7 @@ class _AddFieldDialogState extends State<AddFieldDialog> with TickerProviderStat
           onChanged: (Enum? value) {
             if (field.types.first is SchemaTyped && value != null) {
               (field.types.first as SchemaTyped).typeByEnum = value;
+              // field = SchemaField.copyWith(field, types: [field.types.first]);
               setState(() {});
             }
           },
@@ -515,7 +516,7 @@ class _AddFieldDialogState extends State<AddFieldDialog> with TickerProviderStat
         children: [
           AlpineSwitch(
             initiallyOn: field.required,
-            onChange: (value) => field.required = value,
+            onChange: (value) => field = SchemaField.copyWith(field, required: value),
           ),
           const SizedBox(width: 15),
           Text("Required", style: TextStyle(color: AlpineColors.textColor1, fontWeight: FontWeight.w200, fontSize: 16)),
@@ -561,7 +562,7 @@ class _AddFieldDialogState extends State<AddFieldDialog> with TickerProviderStat
         children: [
           AlpineSwitch(
             initiallyOn: field.isList,
-            onChange: (value) => field.isList = value,
+            onChange: (value) => field = SchemaField.copyWith(field, isList: value),
             disabled: true,
           ),
           const SizedBox(width: 15),
@@ -828,8 +829,8 @@ class _AddFieldDialogState extends State<AddFieldDialog> with TickerProviderStat
   }
 
   void _onDefaultValueChanged(String value) {
-    if (field is SchemaDefaultValue) {
-      (field as SchemaDefaultValue).defaultValueByDynamic = value;
+    if (field.types.isNotEmpty && field.types.first is SchemaDefaultValue) {
+      (field.types.first as SchemaDefaultValue).defaultValueByDynamic = value;
     }
   }
 
@@ -943,7 +944,7 @@ class _AddFieldDialogState extends State<AddFieldDialog> with TickerProviderStat
       const SizedBox(height: 15),
       StringField(
         controller: _fieldIdController,
-        onChanged: (value) => field.title = value,
+        onChanged: (value) => field = SchemaField.copyWith(field, title: value),
       ),
       const SizedBox(height: 10),
       SelectableText(

@@ -100,7 +100,7 @@ class SchemaFloat
       );
 
   @override
-  String toString() => "SchemaFloat()";
+  String toString() => "SchemaFloat(${type.name})";
 
   @override
   String readableString() => "float";

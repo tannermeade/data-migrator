@@ -1,4 +1,5 @@
 import 'package:data_migrator/domain/data_types/enums.dart';
+import 'package:data_migrator/domain/data_types/interfaces/schema_default_value.dart';
 import 'package:data_migrator/domain/data_types/primitive_types/schema_boolean.dart';
 import 'package:data_migrator/domain/data_types/primitive_types/schema_int.dart';
 import 'package:data_migrator/domain/data_types/primitive_types/schema_string.dart';
@@ -44,13 +45,15 @@ class EditSchemaMapDialog extends StatefulWidget {
 }
 
 class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
+  late SchemaMap schemaMap;
   late TextEditingController _nameController;
   late TextEditingController _idController;
 
   @override
   void initState() {
-    _idController = TextEditingController(text: widget.data.schemaMap.id ?? "");
-    _nameController = TextEditingController(text: widget.data.schemaMap.name);
+    schemaMap = SchemaMap.copyWith(widget.data.schemaMap);
+    _idController = TextEditingController(text: schemaMap.id ?? "");
+    _nameController = TextEditingController(text: schemaMap.name);
     super.initState();
   }
 
@@ -88,7 +91,7 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            widget.data.schemaMap.name,
+            schemaMap.name,
             style: TextStyle(
               // color: AlpineColors.textColor1,
               fontSize: 20,
@@ -129,7 +132,7 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
                       const SizedBox(height: 15),
                       AlpineIdWidget(
                         textController: _idController,
-                        editable: widget.data.schemaMap.mutable,
+                        editable: schemaMap.mutable,
                         startEditing: _idController.text.isNotEmpty,
                         width: double.infinity,
                       ),
@@ -149,7 +152,7 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
               ),
             ),
             const SizedBox(height: 15),
-            !widget.data.schemaMap.mutable
+            !schemaMap.mutable
                 ? AlpineIdWidget(
                     textController: _nameController,
                     editable: false,
@@ -169,7 +172,7 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
                   ),
                 ),
                 Expanded(child: Container()),
-                if (widget.data.schemaMap.mutable)
+                if (schemaMap.mutable)
                   AlpineButton(
                     color: AlpineColors.buttonColor2,
                     isFilled: true,
@@ -181,11 +184,11 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
                           builder: (_) => Consumer(builder: (BuildContext context, WidgetRef ref, Widget? child) {
                                 return AddFieldDialog(
                                     onAddField: (field) {
-                                      for (var schemaField in widget.data.schemaMap.fields) {
-                                        if (schemaField.title == field.title) return false;
+                                      for (var iField in schemaMap.fields) {
+                                        if (iField.title == field.title) return false;
                                       }
-                                      widget.data.schemaMap.fields.add(field);
-                                      setState(() {});
+                                      setState(() => schemaMap =
+                                          SchemaMap.copyWith(schemaMap, fields: schemaMap.fields + [field]));
                                       return true;
                                     },
                                     field: SchemaField(
@@ -193,8 +196,8 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
                                       isList: false,
                                       required: true,
                                       types: [
-                                        SchemaBoolean(
-                                          // type: IntType.int,
+                                        SchemaString(
+                                          type: StringType.text,
                                           defaultValue: null,
                                         )
                                       ],
@@ -211,16 +214,28 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AlpineButton(
-                  label: "Save",
-                  color: AlpineColors.buttonColor2,
-                  isFilled: true,
-                  onTap: () {
-                    widget.data.schemaMap.id = _idController.text;
-                    widget.data.schemaMap.name = _nameController.text;
-                    Navigator.pop(context);
-                  },
-                ),
+                Consumer(builder: (context, ref, child) {
+                  return AlpineButton(
+                    label: "Save",
+                    color: AlpineColors.buttonColor2,
+                    isFilled: true,
+                    onTap: () {
+                      var dataOrigin = ref.read(
+                          widget.data.forOrigin == Origin.source ? sourceOriginProvider : destinationOriginProvider);
+                      dataOrigin.updateSchema(
+                        newObj: SchemaMap.copyWith(
+                          schemaMap,
+                          id: _idController.text,
+                          name: _nameController.text,
+                        ),
+                        oldObj: widget.data.schemaMap,
+                      );
+                      // schemaMap.id = _idController.text;
+                      // schemaMap.name = _nameController.text;
+                      Navigator.pop(context);
+                    },
+                  );
+                }),
                 const SizedBox(width: 10),
                 AlpineButton(
                   label: "Cancel",
@@ -243,14 +258,14 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
                         isFilled: true,
                         onTap: () {
                           var converter = ref.read(converterProvider);
-                          var addr = converter.getAddress(dataOrigin.schema, widget.data.schemaMap);
+                          var addr = converter.getAddress(dataOrigin.getSchema(), widget.data.schemaMap);
                           // need to update state here still...
-                          converter.schemaConversions.removeWhere((el) {
-                            return widget.data.forOrigin == Origin.source
-                                ? listEquals(addr, el.sourceSchemaMap)
-                                : listEquals(addr, el.destinationSchemaMap);
-                          });
-                          dataOrigin.removeSchema(widget.data.schemaMap);
+                          // converter.schemaConversions.removeWhere((el) {
+                          //   return widget.data.forOrigin == Origin.source
+                          //       ? listEquals(addr, el.sourceSchemaMap)
+                          //       : listEquals(addr, el.destinationSchemaMap);
+                          // });
+                          dataOrigin.deleteFromSchema(schemaObj: widget.data.schemaMap);
                           Navigator.pop(context);
                         },
                       );
@@ -268,30 +283,38 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
       AlpineDataTable(
         showCellBorder: false,
         headers: const [],
-        data: widget.data.schemaMap.fields
+        data: schemaMap.fields
             .map((field) => [
                   field.title,
                   field.types.map((t) => t.readableString()).join(', '),
                   field.isList ? "array" : "single value",
-                  field.required ? "required" : "not required",
-                  if (widget.data.schemaMap.mutable)
-                    AlpineButton(
-                      label: "Delete",
-                      textColor: Colors.white,
-                      color: AlpineColors.warningColor,
-                      isFilled: true,
-                      onTap: () => setState(() => _removeAttribute(field)),
+                  // field.required ? "required" : "not required",
+                  field.types.toString(),
+                  // if (field.types.isNotEmpty && field.types.first is SchemaInt)
+                  //   (field.types.first as SchemaDefaultValue).defaultValue.toString(),
+                  if (schemaMap.mutable)
+                    Consumer(
+                      builder: (context, ref, child) {
+                        var prov =
+                            widget.data.forOrigin == Origin.source ? sourceOriginProvider : destinationOriginProvider;
+                        var dataOrigin = ref.read(prov);
+                        return AlpineButton(
+                          label: "Delete",
+                          textColor: Colors.white,
+                          color: AlpineColors.warningColor,
+                          isFilled: true,
+                          onTap: () => setState(() {
+                            schemaMap = SchemaMap.copyWith(
+                              schemaMap,
+                              fields: schemaMap.fields.where((f) => f != field).toList(),
+                            );
+                          }),
+                        );
+                      },
                     ),
                 ])
             .toList(),
       ),
     ];
-  }
-
-  void _removeAttribute(SchemaField field) {
-    // check if conversions exist for field
-    // display a dialog to confirm deletion of field conversions
-    // if yes, delete
-    widget.data.schemaMap.fields.remove(field);
   }
 }

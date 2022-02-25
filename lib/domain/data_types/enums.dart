@@ -47,3 +47,10 @@ enum DateType {
   time,
   year,
 }
+
+enum FieldStatus {
+  available,
+  failed,
+  processing,
+  none,
+}

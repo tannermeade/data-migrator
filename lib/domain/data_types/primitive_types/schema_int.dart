@@ -33,6 +33,9 @@ class SchemaInt
   int? defaultValue;
   @override
   set defaultValueByDynamic(value) {
+    try {
+      if (value is String) value = int.parse(value);
+    } catch (e) {}
     if (value is int || value is int?) defaultValue = value;
   }
 
@@ -101,7 +104,7 @@ class SchemaInt
       );
 
   @override
-  String toString() => "SchemaInt()";
+  String toString() => "SchemaInt(${type.name})";
 
   @override
   String readableString() => "int";

@@ -28,7 +28,7 @@ class SchemaDate implements SchemaDataType, SchemaNullable, SchemaDefaultValue, 
   }
 
   @override
-  String toString() => "SchemaDate()";
+  String toString() => "SchemaDate(${type.name})";
 
   @override
   bool isOfType(data) {

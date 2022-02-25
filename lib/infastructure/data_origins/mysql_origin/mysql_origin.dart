@@ -1,3 +1,6 @@
+import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart';
+import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
+import 'package:data_migrator/domain/data_types/schema_data_type.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
 import 'package:data_migrator/infastructure/data_origins/data_origin.dart';
 
@@ -57,7 +60,29 @@ class MysqlOrigin extends DataOrigin {
   }
 
   @override
-  void removeSchema(schemaObj) {
-    // TODO: implement removeSchema
+  void addToSchema({required SchemaObject newObj, required SchemaObject parentObj}) {
+    // TODO: implement addToSchema
+  }
+
+  @override
+  void deleteFromSchema({required SchemaObject schemaObj}) {
+    // TODO: implement deleteFromSchema
+  }
+
+  @override
+  List<SchemaMap> getSchema() {
+    // TODO: implement getSchema
+    throw UnimplementedError();
+  }
+
+  @override
+  void updateSchema({required SchemaObject newObj, required SchemaObject oldObj}) {
+    // TODO: implement updateSchema
+  }
+
+  @override
+  Future<List<ConfirmationData>> validate() async {
+    // TODO: implement validate
+    throw UnimplementedError();
   }
 }

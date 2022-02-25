@@ -5,6 +5,7 @@ class AlpineButton extends StatefulWidget {
   const AlpineButton({
     Key? key,
     required this.label,
+    this.child,
     required this.color,
     required this.isFilled,
     this.onTap,
@@ -16,6 +17,7 @@ class AlpineButton extends StatefulWidget {
     // this.textHoverColor,
   }) : super(key: key);
 
+  final Widget? child;
   final String label;
   final Color color;
   final Color? textColor;
@@ -48,11 +50,12 @@ class _AlpineButtonState extends State<AlpineButton> {
             borderRadius: const BorderRadius.all(Radius.circular(30)),
             border: Border.all(color: widget.color, width: 2),
           ),
-          child: Text(widget.label,
-              style: TextStyle(
-                  color: widget.textColor ?? (widget.isFilled ? AlpineColors.background1a : widget.color),
-                  fontWeight: FontWeight.w200,
-                  fontSize: widget.fontSize)),
+          child: widget.child ??
+              Text(widget.label,
+                  style: TextStyle(
+                      color: widget.textColor ?? (widget.isFilled ? AlpineColors.background1a : widget.color),
+                      fontWeight: FontWeight.w200,
+                      fontSize: widget.fontSize)),
         ),
       ),
     );

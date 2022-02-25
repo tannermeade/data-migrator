@@ -57,7 +57,7 @@ class SchemaString implements SchemaDataType, SchemaNullable, SchemaSizeInt, Sch
   int get hashCode => Object.hash(type, size, nullable);
 
   @override
-  String toString() => "SchemaString()";
+  String toString() => "SchemaString(${type.name})";
 
   @override
   String readableString() => "string";

@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart';
+import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
+import 'package:data_migrator/domain/data_types/schema_data_type.dart';
 import 'package:data_migrator/infastructure/data_origins/data_origin.dart';
 import 'package:data_migrator/domain/data_types/schema_field.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
@@ -13,16 +16,26 @@ class CsvOrigin extends DataOrigin {
   List<CsvFile> csvFiles = [];
 
   @override
-  List<SchemaMap> get schema => csvFiles.map((f) => f.schema).toList();
-
-  @override
   bool get isConversionReady => csvFiles.isNotEmpty;
 
   @override
-  void removeSchema(dynamic schemaObj) {
+  List<SchemaMap> getSchema() => csvFiles.map((f) => f.schema).toList();
+
+  @override
+  void addToSchema({required SchemaObject newObj, required SchemaObject parentObj}) {
+    // TODO: implement addToSchema
+  }
+
+  @override
+  void deleteFromSchema({required SchemaObject schemaObj}) {
     for (int i = 0; i < csvFiles.length; i++) {
-      if (csvFiles[i].schema == schemaObj) csvFiles.removeAt(i);
+      if (csvFiles[i].schema.hashCode == schemaObj.hashCode) csvFiles.removeAt(i);
     }
+  }
+
+  @override
+  void updateSchema({required SchemaObject newObj, required SchemaObject oldObj}) {
+    // TODO: implement updateSchema
   }
 
   StreamController<List<List>>? _streamController;
@@ -123,15 +136,18 @@ class CsvOrigin extends DataOrigin {
       rowCount: 1000,
       schemaByteEnd: schemaByteEnd,
     );
-
+    List<SchemaField> fields = [];
     for (int i = 0; i < schema.fields.length; i++) {
       var fieldTypes = types[i].isNotEmpty ? types[i] : {String};
-      schema.fields[i].setTypes(fieldTypes);
+      fields.add(SchemaField.copyWith(
+        schema.fields[i],
+        types: SchemaField.setTypes(fieldTypes),
+      ));
     }
 
     return CsvFile(
       file: platformFile,
-      schema: schema,
+      schema: SchemaMap.copyWith(schema, fields: fields),
       schemaByteEnd: schemaByteEnd,
     );
   }
@@ -270,5 +286,11 @@ class CsvOrigin extends DataOrigin {
   Future<Sink<List<List>>> openDataSink(List<int> schemaIndex) {
     // TODO: implement openDataSink
     throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ConfirmationData>> validate() async {
+    if (csvFiles.isEmpty) throw Exception("No CSV files selected.");
+    return [];
   }
 }

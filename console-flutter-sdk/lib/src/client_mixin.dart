@@ -25,14 +25,10 @@ class ClientMixin {
           } else {
             if (value is List) {
               value.asMap().forEach((i, v) {
-                (request as http.MultipartRequest)
-                    .fields
-                    .addAll({"$key[$i]": v.toString()});
+                (request as http.MultipartRequest).fields.addAll({"$key[$i]": v.toString()});
               });
             } else {
-              (request as http.MultipartRequest)
-                  .fields
-                  .addAll({key: value.toString()});
+              (request as http.MultipartRequest).fields.addAll({key: value.toString()});
             }
           }
         });
@@ -100,17 +96,19 @@ class ClientMixin {
   }
 
   Future<http.Response> toResponse(http.StreamedResponse streamedResponse) async {
-    if(streamedResponse.statusCode == 204) {
-        return http.Response('',
-          streamedResponse.statusCode,
-          headers: streamedResponse.headers.map((k,v) => k.toLowerCase()=='content-type' ? MapEntry(k, 'text/plain') : MapEntry(k,v)),
-          request: streamedResponse.request,
-          isRedirect: streamedResponse.isRedirect,
-          persistentConnection: streamedResponse.persistentConnection,
-          reasonPhrase: streamedResponse.reasonPhrase,
-        );
-      } else {
-        return await http.Response.fromStream(streamedResponse);
-      }
+    if (streamedResponse.statusCode == 204) {
+      return http.Response(
+        '',
+        streamedResponse.statusCode,
+        headers: streamedResponse.headers
+            .map((k, v) => k.toLowerCase() == 'content-type' ? MapEntry(k, 'text/plain') : MapEntry(k, v)),
+        request: streamedResponse.request,
+        isRedirect: streamedResponse.isRedirect,
+        persistentConnection: streamedResponse.persistentConnection,
+        reasonPhrase: streamedResponse.reasonPhrase,
+      );
+    } else {
+      return await http.Response.fromStream(streamedResponse);
+    }
   }
 }

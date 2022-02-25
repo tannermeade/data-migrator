@@ -1,3 +1,4 @@
+import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart';
 import 'package:data_migrator/domain/conversion/conversion/convert_schema_map.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_colors.dart';
 import 'package:data_migrator/ui/common/values/enums.dart';
@@ -5,6 +6,7 @@ import 'package:data_migrator/ui/common/widgets/convert_schema_map_widget.dart';
 import 'package:data_migrator/ui/common/widgets/schema_map_widget.dart';
 import 'package:data_migrator/ui/dialog_handler.dart';
 import 'package:data_migrator/ui/dialogs/appwrite_config_dialog.dart';
+import 'package:data_migrator/ui/dialogs/conversion_confirmation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
@@ -30,21 +32,31 @@ class _MyHomePageState extends State<MyHomePage> {
           return FloatingActionButton(
             backgroundColor: AlpineColors.buttonColor2,
             child: const Icon(Icons.play_arrow),
-            onPressed: () {
+            onPressed: () async {
               // start conversion
               var sourceOrigin = ref.read(sourceOriginProvider);
               var destinationOrigin = ref.read(destinationOriginProvider);
               var converter = ref.read(converterProvider);
-              bool validConversions = false;
               try {
-                validConversions = converter.validateConversions(sourceOrigin, destinationOrigin);
+                await converter.startConversion(
+                  destination: destinationOrigin,
+                  source: sourceOrigin,
+                  sourceAddress: [0],
+                  onConfirm: _handleConversionConfirmations,
+                );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
               }
-              if (validConversions) {
-                List<int> sourceAddress = [0];
-                converter.startConversion(sourceAddress, sourceOrigin, destinationOrigin);
-              }
+              // bool validConversions = false;
+              // try {
+              //   validConversions = converter.validateConversions(sourceOrigin, destinationOrigin);
+              // } catch (e) {
+              //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+              // }
+              // if (validConversions) {
+              //   List<int> sourceAddress = [0];
+              //   converter.startConversion(sourceAddress, sourceOrigin, destinationOrigin);
+              // }
             },
           );
         },
@@ -112,7 +124,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     // padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   ),
                 ),
-                ...sourceOrigin.schema
+                ...sourceOrigin
+                    .getSchema()
                     .map((m) => SchemaMapWidget(
                           schemaMap: m,
                           forOrigin: Origin.source,
@@ -148,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         Expanded(
                           child: AlpineButton(
                             onTap: () => setState(() => converter.generateDefaultConversions(
-                                  source: sourceOrigin.schema,
+                                  source: sourceOrigin.getSchema(),
                                   destination: destinationOrigin.schema,
                                 )),
                             label: "Add Default Conversions",
@@ -239,7 +252,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                   child: AlpineButton(
-                    onTap: () => setState(() => destinationOrigin.addSchemaFromSchema(sourceOrigin.schema)),
+                    onTap: () => setState(() => destinationOrigin.addSchemaFromSchema(sourceOrigin.getSchema())),
                     label: "Add from Source",
                     color: AlpineColors.buttonColor2,
                     isFilled: true,
@@ -263,5 +276,27 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+
+  Future<bool> _handleConversionConfirmations(List<ConfirmationData> confirmations) async {
+    bool cancelConversion = false;
+    for (int i = 0; i < confirmations.length; i++) {
+      await showDialog(
+          context: context,
+          builder: (_) => Consumer(builder: (BuildContext context, WidgetRef ref, Widget? child) {
+                return ConversionConfirmationDialog(
+                  confirmationData: confirmations[i],
+                  confirmationNumber: i + 1,
+                  totalConfirmations: confirmations.length,
+                  onCancel: () => cancelConversion = true,
+                );
+              }));
+      if (cancelConversion) {
+        print("canceling conversion");
+        return false;
+      }
+    }
+
+    return false;
   }
 }

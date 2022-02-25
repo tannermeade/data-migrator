@@ -1,3 +1,4 @@
+import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart';
 import 'package:data_migrator/domain/conversion/conversion/enums.dart';
 import 'package:data_migrator/domain/conversion/type_adpaters/copy_adapter.dart';
 import 'package:data_migrator/domain/data_types/interfaces/schema_default_value.dart';
@@ -6,6 +7,7 @@ import 'package:data_migrator/domain/data_types/schema_field.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
 import 'package:data_migrator/domain/data_types/schema_none.dart';
 import 'package:data_migrator/infastructure/data_origins/data_origin.dart';
+import 'package:data_migrator/ui/common/values/providers.dart';
 import 'package:flutter/foundation.dart';
 
 import 'convert_schema_field.dart';
@@ -136,10 +138,11 @@ class SchemaConverter {
   bool _isValidSchema(ConvertSchemaObj schemaObj, DataOrigin destinationOrigin) {
     if (schemaObj is ConvertSchemaMap) {
       if (schemaObj.destinationSchemaMap != null && schemaObj.sourceSchemaMap != null) {
-        SchemaMap? destinationMap = getFromSchemaAddress(destinationOrigin.schema, schemaObj.destinationSchemaMap!);
+        SchemaMap? destinationMap =
+            getFromSchemaAddress(destinationOrigin.getSchema(), schemaObj.destinationSchemaMap!);
         if (destinationMap == null) return false; // invalid conversion destination
         var requiredFields = destinationMap.fields.where((field) => field.required).toList();
-        var requiredFieldAddresses = requiredFields.map((field) => getAddress(destinationOrigin.schema, field));
+        var requiredFieldAddresses = requiredFields.map((field) => getAddress(destinationOrigin.getSchema(), field));
         List<List?> missingFields = [];
         requiredFieldAddresses.forEach((fieldAddr) {
           try {
@@ -164,21 +167,41 @@ class SchemaConverter {
     return false; // not a ConversionSchemaMap
   }
 
-  Future startConversion(List<int> sourceAddress, DataOrigin source, DataOrigin destination) async {
-    ConvertSchemaMap convertConnection;
-    try {
-      convertConnection = schemaConversions.firstWhere((el) => listEquals(el.sourceSchemaMap, sourceAddress));
-    } catch (e) {
-      throw Exception("Can't convert from that source address because no conversions where found for it.");
+  Future startConversion({
+    required List<int> sourceAddress,
+    required DataOrigin source,
+    required DataOrigin destination,
+    Future<bool> Function(List<ConfirmationData>)? onConfirm,
+  }) async {
+    // validate sourceAddress exists
+    ConvertSchemaMap convertConnection = _getConvertConnection(sourceAddress);
+
+    // validate conversion & dataOrigins
+    validateConversions(source, destination);
+    var sourceConfirms = await source.validate();
+    var destinationConfirms = await destination.validate();
+    var allConfirms = sourceConfirms + destinationConfirms;
+    if (onConfirm != null && allConfirms.isNotEmpty) {
+      var confirmed = await onConfirm(allConfirms);
+      if (!confirmed) return;
     }
 
-    if (convertConnection.destinationSchemaMap != null) {
-      destinationSink = await destination.openDataSink(convertConnection.destinationSchemaMap!);
-      var stream = source.startDataStream(sourceAddress);
-      var subscription = stream.listen(
-        (event) => _handleConversionEvents(event, convertConnection, source, destination),
-        onDone: () => destinationSink!.close(),
-      );
+    // start conversion
+    destinationSink = await destination.openDataSink(convertConnection.destinationSchemaMap!);
+    source.startDataStream(sourceAddress).listen(
+          (event) => _handleConversionEvents(event, convertConnection, source, destination),
+          onDone: () => destinationSink!.close(),
+        );
+  }
+
+  ConvertSchemaMap _getConvertConnection(List<int> sourceAddress) {
+    try {
+      var convertConnection = schemaConversions.firstWhere((el) => listEquals(el.sourceSchemaMap, sourceAddress));
+      if (convertConnection.destinationSchemaMap == null) throw Exception("Error: Conversion missing destination.");
+      return convertConnection;
+    } catch (e) {
+      print(e);
+      throw Exception("Can't convert from that source address because no conversions where found for it.");
     }
   }
 
@@ -210,7 +233,7 @@ class SchemaConverter {
     SchemaMap? destinationSchemaMap;
     // get schema first
     if (convertConnection.destinationSchemaMap != null) {
-      var result = getFromSchemaAddress(destination.schema, convertConnection.destinationSchemaMap!);
+      var result = getFromSchemaAddress(destination.getSchema(), convertConnection.destinationSchemaMap!);
       if (result is SchemaMap) destinationSchemaMap = result;
     }
     if (destinationSchemaMap == null) throw Exception("No Destination SchemaMap");

@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'package:console_flutter_sdk/models.dart' as model;
 
-class AppwriteFile {
-  AppwriteFile({
+class AppwriteFileGroup {
+  AppwriteFileGroup({
     List<File>? files,
     this.dataWriteByteCount,
     this.streamController,
     this.streamSubscription,
-    this.schemaAddress,
+    // this.schemaAddress,
     required this.collectionId,
   }) : this.files = files ?? [];
 
@@ -18,7 +18,7 @@ class AppwriteFile {
   List<Future<model.File>> uploadedFiles = [];
   List<Future<model.Execution>> insertExecutions = [];
   int? dataWriteByteCount;
-  List<int>? schemaAddress;
+  // List<int>? schemaAddress;
   String collectionId;
   StreamController<List<List>>? streamController;
   StreamSubscription<List<List>>? streamSubscription;

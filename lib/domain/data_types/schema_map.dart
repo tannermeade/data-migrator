@@ -1,30 +1,58 @@
+import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
+
 import 'permission_model.dart';
 import 'schema_data_type.dart';
 import 'schema_field.dart';
 import 'schema_index.dart';
 
-class SchemaMap implements SchemaDataType {
+class SchemaMap implements SchemaDataType, SchemaObject {
   SchemaMap({
     required this.name,
     this.id,
-    this.fields = const [],
-    this.indexList = const [],
+    List<SchemaField> fields = const [],
+    List<SchemaIndex> indices = const [],
     this.permissionModel,
     this.lastUpdated,
     this.createdOn,
     this.enabled,
     this.mutable = true,
-  });
+    this.classification,
+  })  : fields = List.unmodifiable(fields),
+        indices = List.unmodifiable(indices);
 
-  String name;
-  String? id;
-  List<SchemaField> fields;
-  List<SchemaIndex> indexList;
-  PermissionModel? permissionModel;
-  DateTime? lastUpdated;
-  DateTime? createdOn;
-  bool? enabled;
-  bool mutable;
+  final String name;
+  final String? id;
+  final List<SchemaField> fields;
+  final List<SchemaIndex> indices;
+  final PermissionModel? permissionModel;
+  final DateTime? lastUpdated;
+  final DateTime? createdOn;
+  final bool? enabled;
+  final bool mutable;
+  final Enum? classification;
+
+  SchemaMap.copyWith(
+    SchemaMap other, {
+    String? name,
+    String? id,
+    List<SchemaField>? fields,
+    List<SchemaIndex>? indices,
+    PermissionModel? permissionModel,
+    DateTime? lastUpdated,
+    DateTime? createdOn,
+    bool? enabled,
+    bool? mutable,
+    Enum? classification,
+  })  : name = name ?? other.name,
+        id = id ?? other.id,
+        fields = fields ?? other.fields,
+        indices = indices ?? other.indices,
+        permissionModel = permissionModel ?? other.permissionModel,
+        lastUpdated = lastUpdated ?? other.lastUpdated,
+        createdOn = createdOn ?? other.createdOn,
+        enabled = enabled ?? other.enabled,
+        mutable = mutable ?? other.mutable,
+        classification = classification ?? other.classification;
 
   @override
   bool isOfType(data) {

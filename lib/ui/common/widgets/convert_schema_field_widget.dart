@@ -45,8 +45,8 @@ class _ConvertSchemaFieldWidgetState extends State<ConvertSchemaFieldWidget> {
         var destinationOrigin = ref.read(destinationOriginProvider);
         var sourceField;
         if (widget.convertSchemaField.sourceSchemaField != null) {
-          sourceField =
-              SchemaConverter.getFromSchemaAddress(sourceOrigin.schema, widget.convertSchemaField.sourceSchemaField!);
+          sourceField = SchemaConverter.getFromSchemaAddress(
+              sourceOrigin.getSchema(), widget.convertSchemaField.sourceSchemaField!);
           List<int> sourceMapAddr = widget.convertSchemaField.sourceSchemaField!.toList();
           sourceMapAddr.removeLast();
         }
@@ -172,19 +172,19 @@ class _ConvertSchemaFieldWidgetState extends State<ConvertSchemaFieldWidget> {
         var dataOrigin = ref.read(forSource ? sourceOriginProvider : destinationOriginProvider);
         var fieldAddr =
             forSource ? widget.convertSchemaField.sourceSchemaField : widget.convertSchemaField.destinationSchemaField;
-        var field = fieldAddr != null ? SchemaConverter.getFromSchemaAddress(dataOrigin.schema, fieldAddr) : null;
+        var field = fieldAddr != null ? SchemaConverter.getFromSchemaAddress(dataOrigin.getSchema(), fieldAddr) : null;
         var converter = ref.read(converterProvider);
         var mapAddr =
             forSource ? widget.convertSchemaMap.sourceSchemaMap : widget.convertSchemaMap.destinationSchemaMap;
         List<SchemaField>? schemaMapFields = [];
         List<SchemaField>? uniqueFields;
         if (mapAddr != null) {
-          var schemaMap = SchemaConverter.getFromSchemaAddress(dataOrigin.schema, mapAddr);
+          var schemaMap = SchemaConverter.getFromSchemaAddress(dataOrigin.getSchema(), mapAddr);
           if (schemaMap is SchemaMap) {
             schemaMapFields = schemaMap.fields;
             List<SchemaField> usedFields = [];
             for (var mapField in schemaMap.fields) {
-              var addr = converter.getAddress(dataOrigin.schema, mapField);
+              var addr = converter.getAddress(dataOrigin.getSchema(), mapField);
               var found = false;
               for (var connection in widget.convertSchemaMap.connections) {
                 var convertField = forSource ? connection.sourceSchemaField : connection.destinationSchemaField;
@@ -216,7 +216,7 @@ class _ConvertSchemaFieldWidgetState extends State<ConvertSchemaFieldWidget> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        converter.getAddress(dataOrigin.schema, f).toString(),
+                        converter.getAddress(dataOrigin.getSchema(), f).toString(),
                         style: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 12),
                       ),
                       Text(
@@ -233,7 +233,7 @@ class _ConvertSchemaFieldWidgetState extends State<ConvertSchemaFieldWidget> {
               .toList(),
           onChanged: (SchemaField? value) {
             if (value == null) return;
-            var result = converter.getAddress(dataOrigin.schema, value);
+            var result = converter.getAddress(dataOrigin.getSchema(), value);
             if (forSource) {
               widget.convertSchemaField.sourceSchemaField = result;
             } else {

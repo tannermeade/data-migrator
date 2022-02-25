@@ -132,7 +132,7 @@ class _ConvertSchemaMapWidgetState extends State<ConvertSchemaMapWidget> {
         var dataOrigin = ref.read(forSource ? sourceOriginProvider : destinationOriginProvider);
         var mapAddr =
             forSource ? widget.convertSchemaMap.sourceSchemaMap : widget.convertSchemaMap.destinationSchemaMap;
-        var map = mapAddr != null ? SchemaConverter.getFromSchemaAddress(dataOrigin.schema, mapAddr) : null;
+        var map = mapAddr != null ? SchemaConverter.getFromSchemaAddress(dataOrigin.getSchema(), mapAddr) : null;
         var converter = ref.read(converterProvider);
 
         return DropdownButton<SchemaMap>(
@@ -146,7 +146,7 @@ class _ConvertSchemaMapWidgetState extends State<ConvertSchemaMapWidget> {
             style: TextStyle(color: AlpineColors.warningColor),
           ),
           items: [
-            ...dataOrigin.schema.map((m) => DropdownMenuItem<SchemaMap>(
+            ...dataOrigin.getSchema().map((m) => DropdownMenuItem<SchemaMap>(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -156,7 +156,7 @@ class _ConvertSchemaMapWidgetState extends State<ConvertSchemaMapWidget> {
                       style: TextStyle(color: AlpineColors.textColor2),
                     ),
                     Text(
-                      map != null ? converter.getAddress(dataOrigin.schema, m).toString() : "",
+                      map != null ? converter.getAddress(dataOrigin.getSchema(), m).toString() : "",
                       style: TextStyle(color: Colors.grey.withOpacity(0.5), fontSize: 12),
                     ),
                   ],
@@ -165,7 +165,7 @@ class _ConvertSchemaMapWidgetState extends State<ConvertSchemaMapWidget> {
           ],
           onChanged: (SchemaMap? value) {
             if (value == null) return;
-            var result = converter.getAddress(dataOrigin.schema, value);
+            var result = converter.getAddress(dataOrigin.getSchema(), value);
             if (forSource) {
               widget.convertSchemaMap.sourceSchemaMap = result;
             } else {
