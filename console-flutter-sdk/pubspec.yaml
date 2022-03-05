@@ -6,7 +6,7 @@ repository: https://github.com/appwrite/sdk-for-console-flutter
 issue_tracker: https://github.com/appwrite/sdk-generator/issues
 documentation: https://appwrite.io/support
 environment:
-  sdk: '>=2.14.0 <3.0.0'
+  sdk: ">=2.14.0 <3.0.0"
 dependencies:
   flutter:
     sdk: flutter
@@ -14,7 +14,7 @@ dependencies:
   device_info_plus: ^3.2.0
   flutter_web_auth: ^0.4.0
   http: ^0.13.4
-  package_info_plus: ^1.3.0
+  package_info_plus: 1.3.0
   path_provider: ^2.0.8
   web_socket_channel: ^2.1.0
 
