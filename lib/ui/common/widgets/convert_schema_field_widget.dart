@@ -205,6 +205,7 @@ class _ConvertSchemaFieldWidgetState extends State<ConvertSchemaFieldWidget> {
           value: field,
           underline: const SizedBox(),
           icon: const SizedBox(),
+          itemHeight: 55,
           hint: Text(
             forSource ? "No Source Field" : "No Destination Field",
             style: TextStyle(color: AlpineColors.warningColor),
