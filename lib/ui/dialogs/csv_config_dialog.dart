@@ -1,4 +1,5 @@
 import 'package:data_migrator/domain/data_types/schema_map.dart';
+import 'package:data_migrator/infastructure/data_origins/csv_origin/csv_origin.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_file_picker_widget.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_button.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_colors.dart';
@@ -104,7 +105,13 @@ class _CsvConfigDialogState extends State<CsvConfigDialog> {
               //     ),
               //   ],
               // )),
-              AlpineFilePickerWidget(getFile: () async => await ref.read(sourceOriginProvider).loadCSV()),
+              AlpineFilePickerWidget(
+                getFile: () async {
+                  if (sourceOriginProvider is StateProvider<CsvOrigin>) {
+                    await (ref.read(sourceOriginProvider) as CsvOrigin).loadCSV();
+                  }
+                },
+              ),
               const SizedBox(height: 20),
               // Row(
               //   mainAxisAlignment: MainAxisAlignment.end,

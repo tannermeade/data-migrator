@@ -103,7 +103,7 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
 
   Widget _buildBody() {
     return Consumer(builder: (context, ref, child) {
-      var appwriteOrigin = ref.read(destinationOriginProvider);
+      var appwriteOrigin = widget.data.dataOrigin;//ref.read(destinationOriginProvider);
       return Container(
           margin: const EdgeInsets.only(top: 30, bottom: 30),
           padding: const EdgeInsets.only(left: 40, right: 40),

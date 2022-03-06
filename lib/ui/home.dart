@@ -24,6 +24,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,14 +110,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   child: const Text(
-                    "CSV",
+                    "Appwrite (source)",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
                   child: AlpineButton(
-                    onTap: () => toPopUp(context, Routes.csvConfigDialog),
+                    onTap: () => toPopUp(
+                      context,
+                      Routes.appwriteConfigDialog,
+                      AppwriteConfigDialogData(sourceOrigin),
+                    ),
                     label: "Configure",
                     color: AlpineColors.buttonColor2,
                     isFilled: true,

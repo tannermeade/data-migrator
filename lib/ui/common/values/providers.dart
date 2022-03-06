@@ -4,6 +4,6 @@ import 'package:data_migrator/infastructure/data_origins/csv_origin/csv_origin.d
 import 'package:console_flutter_sdk/appwrite.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final sourceOriginProvider = StateProvider((ref) => CsvOrigin());
+final sourceOriginProvider = StateProvider((ref) => AppwriteOrigin());
 final destinationOriginProvider = StateProvider((ref) => AppwriteOrigin());
 final converterProvider = StateProvider((ref) => SchemaConverter());
