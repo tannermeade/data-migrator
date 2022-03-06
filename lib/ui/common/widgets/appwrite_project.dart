@@ -4,14 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProjectWidget extends ConsumerWidget {
-  const ProjectWidget({Key? key, required this.project, required this.onTap}) : super(key: key);
+  const ProjectWidget({
+    Key? key,
+    required this.project,
+    required this.onTap,
+    required this.isSelected,
+  }) : super(key: key);
 
   final aw.Project project;
   final Function() onTap;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var dataOrigin = ref.read(destinationOriginProvider);
+    // var dataOrigin = ref.read(destinationOriginProvider);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -22,7 +28,7 @@ class ProjectWidget extends ConsumerWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-                color: dataOrigin.selectedProject != null && dataOrigin.selectedProject!.$id == project.$id
+                color: isSelected
                     ? Colors.blueAccent
                     : Colors.grey),
           ),

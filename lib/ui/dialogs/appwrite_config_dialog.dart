@@ -244,7 +244,12 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
           fontWeight: FontWeight.w200,
         ),
       ),
-      if (appwriteOrigin.selectedProject != null) ProjectWidget(project: appwriteOrigin.selectedProject!, onTap: () {}),
+      if (appwriteOrigin.selectedProject != null)
+        ProjectWidget(
+          project: appwriteOrigin.selectedProject!,
+          isSelected: true,
+          onTap: () {},
+        ),
       if (appwriteOrigin.selectedProject == null)
         FutureBuilder<aw.ProjectList>(
           future: appwriteOrigin.getProjects(),
@@ -254,6 +259,7 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
                   children: snapshot.data!.projects
                       .map((p) => ProjectWidget(
                             project: p,
+                            isSelected: false,
                             onTap: () async {
                               await appwriteOrigin.selectProject(p);
                               setState(() {});
