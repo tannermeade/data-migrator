@@ -93,10 +93,34 @@ class AppwriteOrigin extends DataOrigin {
   //   }
   // }
 
+  StreamController<List<List>>? _streamController;
+  int? byteCount;
+
   @override
   Stream<List<List>> startDataStream(List<int> schemaIndex) {
-    // TODO: implement startDataStream
-    throw UnimplementedError();
+    _streamController = StreamController<List<List>>();
+
+    Database database = Database(client);
+    SchemaMap currentSchema = schema[schemaIndex.first];
+    List<List<dynamic>> rows = [];
+
+    database.listDocuments(collectionId: currentSchema.id!).then((value) => {
+          value.documents.forEach((document) {
+            var row = [];
+            schema[schemaIndex.first].fields.forEach((field) {
+              row.add(document.data[field.title]);
+            });
+            rows.add(row);
+          }),
+          _streamController!.sink.add(rows),
+          if (_cancelStream)
+            {
+              _streamController!.close(),
+              _cancelStream = false,
+            }
+        });
+
+    return _streamController!.stream;
   }
 
   @override
