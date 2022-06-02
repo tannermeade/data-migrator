@@ -1,5 +1,7 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_colors.dart';
+import 'package:data_migrator/ui/common/platform_window/window.dart';
+import 'package:data_migrator/ui/common/platform_window/windows_titlebar.dart';
 import 'package:data_migrator/ui/lines.dart';
 import 'package:data_migrator/ui/common/values/routes.dart';
 import 'package:flutter/material.dart';
@@ -34,62 +36,49 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: WindowBorder(
-        color: AlpineColors.background1a,
-        width: 1,
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: ProviderScope(
         child: Stack(
           children: [
-            ProviderScope(
-      child: VRouter(
-        debugShowCheckedModeBanner: false,
-        themeMode: ThemeMode.dark,
-        darkTheme: ThemeData.dark().copyWith(scaffoldBackgroundColor: AlpineColors.background1a),
-        theme: ThemeData.light().copyWith(scaffoldBackgroundColor: AlpineColors.background1a),
-        mode: VRouterMode.history,
-        navigatorKey: navigatorKey,
-        //navigatorKey: GlobalKey(debugLabel: "VRouter:app"),
-        afterEnter: (context, __, ___) {
-          /// Sync the UI with the url: we show the popup if [showPopUp] has been set
-          if (context.vRouter.historyState.containsKey('showPopUp')) {
-            showPopUp(context: navigatorKey.currentContext!);
-          }
-        },
-        transitionDuration: const Duration(milliseconds: 0),
-        buildTransition: (animation, _, child) => FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
+            VRouter(
+              debugShowCheckedModeBanner: false,
+              themeMode: ThemeMode.dark,
+              darkTheme: ThemeData.dark().copyWith(scaffoldBackgroundColor: AlpineColors.background1a),
+              theme: ThemeData.light().copyWith(scaffoldBackgroundColor: AlpineColors.background1a),
+              mode: VRouterMode.history,
+              navigatorKey: navigatorKey,
+              //navigatorKey: GlobalKey(debugLabel: "VRouter:app"),
+              afterEnter: (context, __, ___) {
+                /// Sync the UI with the url: we show the popup if [showPopUp] has been set
+                if (context.vRouter.historyState.containsKey('showPopUp')) {
+                  showPopUp(context: navigatorKey.currentContext!);
+                }
+              },
+              transitionDuration: const Duration(milliseconds: 0),
+              buildTransition: (animation, _, child) => FadeTransition(
+                opacity: animation,
+                child: child,
+              ),
 
-        routes: [
-          VWidget(path: '', widget: DebugWidget(const Text("/"), Routes.home)),
-          VWidget(
-            path: Routes.home,
-            widget: const MyHomePage(title: 'this is a title'),
-          ),
-          VWidget(
-            path: Routes.linesExample,
-            widget: const LinesExample(),
-          ),
-        ],
-      ),
-    ),
-            Container(
-                height: 30,
-                child: Row(
-                  children: const [LeftSide(), RightSide()],
+              routes: [
+                VWidget(path: '', widget: DebugWidget(const Text("/"), Routes.home)),
+                VWidget(
+                  path: Routes.home,
+                  widget: const MyHomePage(title: 'this is a title'),
                 ),
-              
+                VWidget(
+                  path: Routes.linesExample,
+                  widget: const LinesExample(),
+                ),
+              ],
             ),
+            const WindowsTitleBar(),
           ],
         ),
       ),
     );
   }
-
-
-
 }
 
 class DebugWidget extends StatelessWidget {
@@ -117,102 +106,5 @@ class DebugWidget extends StatelessWidget {
           ),
       ],
     )));
-  }
-}
-
-const sidebarColor = Colors.transparent;// Color(0xFFF6A00C);
-
-class LeftSide extends StatelessWidget {
-  const LeftSide({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-        width: 200,
-        child: Container(
-            color: sidebarColor,
-            child: Column(
-              children: [
-                WindowTitleBarBox(child: MoveWindow()),
-                Expanded(child: Container())
-              ],
-            )));
-  }
-}
-
-const backgroundStartColor = Colors.transparent;// Color(0xFFFFD500);
-const backgroundEndColor = Colors.transparent;//Color(0xFFF6A00C);
-
-class RightSide extends StatelessWidget {
-  const RightSide({Key? key}) : super(key: key);
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [backgroundStartColor, backgroundEndColor],
-              stops: [0.0, 1.0]),
-        ),
-        child: Column(children: [
-          WindowTitleBarBox(
-            child: Row(
-              children: [Expanded(child: MoveWindow()), const WindowButtons()],
-            ),
-          )
-        ]),
-      ),
-    );
-  }
-}
-
-final buttonColors = WindowButtonColors(
-    iconNormal: AlpineColors.buttonColor2,
-    mouseOver: AlpineColors.buttonColor2.withOpacity(0.5),
-    mouseDown: AlpineColors.buttonColor2,
-    iconMouseOver: Colors.black,
-    iconMouseDown: Colors.black,
-);
-
-final closeButtonColors = WindowButtonColors(
-    mouseOver:AlpineColors.buttonColor2.withOpacity(0.5),
-    mouseDown:AlpineColors.buttonColor2,
-    iconNormal: AlpineColors.buttonColor2,
-    iconMouseOver: Colors.black,
-    iconMouseDown: Colors.black,
-);
-
-class WindowButtons extends StatefulWidget {
-  const WindowButtons({Key? key}) : super(key: key);
-
-  @override
-  _WindowButtonsState createState() => _WindowButtonsState();
-}
-
-class _WindowButtonsState extends State<WindowButtons> {
-  void maximizeOrRestore() {
-    setState(() {
-      appWindow.maximizeOrRestore();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        MinimizeWindowButton(colors: buttonColors),
-        appWindow.isMaximized
-            ? RestoreWindowButton(
-                colors: buttonColors,
-                onPressed: maximizeOrRestore,
-              )
-            : MaximizeWindowButton(
-                colors: buttonColors,
-                onPressed: maximizeOrRestore,
-              ),
-        CloseWindowButton(colors: closeButtonColors),
-      ],
-    );
   }
 }
