@@ -27,6 +27,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart';
 
 import 'appwrite_file_group.dart';
 import 'package:http_parser/http_parser.dart' as mime;
@@ -434,7 +435,7 @@ class AppwriteOrigin extends DataOrigin {
   StreamController<AppwriteUploadEvent>? _uploadStreamController;
   StreamSubscription<AppwriteUploadEvent>? _uploadStreamSubscription;
   model.Funct? _migratorFunct;
-  model.Tag? _migratorFunctTag;
+  // model.Tag? _migratorFunctTag;
 
   void _initUploadStream() {
     _uploadStreamController = StreamController<AppwriteUploadEvent>();
@@ -447,7 +448,7 @@ class AppwriteOrigin extends DataOrigin {
         await Functions(_client).get(functionId: migratorFunctionId);
       } catch (e) {
         _migratorFunct = null;
-        _migratorFunctTag = null;
+        // _migratorFunctTag = null;
       }
     }
   }
@@ -715,10 +716,10 @@ class AppwriteOrigin extends DataOrigin {
         attribute = await db.createFloatAttribute(
           collectionId: collectionId,
           key: field.title,
-          max: type.max != null ? type.max.toString() : null,
-          min: type.min != null ? type.min.toString() : null,
+          max: type.max,
+          min: type.min,
           xrequired: field.required,
-          xdefault: type.defaultValue != null ? type.defaultValue.toString() : null,
+          xdefault: type.defaultValue,
         );
         break;
       case SchemaBoolean:
@@ -766,20 +767,20 @@ class AppwriteOrigin extends DataOrigin {
       _migratorFunct = await _createMigratorFunction(functions);
     }
     print("funct exists now: $_migratorFunct");
-    print("_migratorFunctTag:$_migratorFunctTag");
-    print("_migratorFunct!.tag:${_migratorFunct!.tag}");
-    if (_migratorFunctTag != null) print("_migratorFunctTag!.id:${_migratorFunctTag!.$id}");
+    // print("_migratorFunctTag:$_migratorFunctTag");
+    // print("_migratorFunct!.tag:${_migratorFunct!.tag}");
+    // if (_migratorFunctTag != null) print("_migratorFunctTag!.id:${_migratorFunctTag!.$id}");
     // check if migratorFunct has correct tag
-    if (_migratorFunctTag == null) {
-      print("create new tag");
-      _migratorFunctTag = await functions.createTag(
-        functionId: _migratorFunct!.$id,
-        command: 'python insert_bundle.py',
-        code: await _migratorCode,
-      );
-      print("activating tag");
-      _migratorFunct = await functions.updateTag(functionId: _migratorFunct!.$id, tag: _migratorFunctTag!.$id);
-    }
+    // if (_migratorFunctTag == null) {
+    //   print("create new tag");
+    //   _migratorFunctTag = await functions.createTag(
+    //     functionId: _migratorFunct!.$id,
+    //     command: 'python insert_bundle.py',
+    //     code: await _migratorCode,
+    //   );
+    //   print("activating tag");
+    //   // _migratorFunct = await functions.updateTag(functionId: _migratorFunct!.$id, tag: _migratorFunctTag!.$id);
+    // }
     print("√ done setting up cloud function");
 
     return functions;
@@ -787,8 +788,13 @@ class AppwriteOrigin extends DataOrigin {
 
   Future _uploadFile(AppwriteUploadEvent uploadEvent) async {
     var multipartFile = await MultipartFile.fromPath("file", uploadEvent.file.path);
+    var inputFile = InputFile(
+      file: multipartFile,
+      // path: uploadEvent.file.path,
+      // filename: basename(uploadEvent.file.path),
+    );
     var storage = Storage(_client);
-    Future<model.File> f = storage.createFile(fileId: "unique()", file: multipartFile);
+    Future<model.File> f = storage.createFile(fileId: "unique()", file: inputFile, bucketId: '');
     uploadEvent.awFileGroup.uploadedFiles.add(f);
     f.then((fileModel) => _handleCloudExecution(fileModel, uploadEvent.awFileGroup));
   }
@@ -1170,10 +1176,10 @@ class AppwriteOrigin extends DataOrigin {
           tryThis: () async => await db.createFloatAttribute(
             collectionId: collectionId,
             key: fieldTitle,
-            max: (type as SchemaFloat).max != null ? type.max.toString() : null,
-            min: type.min != null ? type.min.toString() : null,
+            max: (type as SchemaFloat).max != null ? type.max : null,
+            min: type.min,
             xrequired: fieldRequired,
-            xdefault: type.defaultValue != null ? type.defaultValue.toString() : null,
+            xdefault: type.defaultValue,
           ),
         );
         break;

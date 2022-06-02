@@ -68,7 +68,7 @@ Future<void> showPopUp({required BuildContext context}) async {
 /// Sync the browser with the UI if needed
 void popUpClosed(BuildContext context) {
   // Wait for the next frame so that [context.vRouter.historyState] gets a chance to be updated
-  WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     // If it contains the key, it means that it was dismissed manually (NOT with browser back/forward button)
     if (context.vRouter.historyState.containsKey('showPopUp')) {
       if (context.vRouter.historyCanBack()) {

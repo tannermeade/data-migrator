@@ -30,11 +30,11 @@ dependencies:
   flutter:
     sdk: flutter
   csv: ^5.0.1
-  file_picker: ^4.3.3
+  file_picker: ^4.6.1
   flutter_riverpod: ^1.0.3
-  vrouter: ^1.2.0+18
+  vrouter: ^1.2.1
   console_flutter_sdk:
-    path: 'console-flutter-sdk'
+    path: 'appwrite_console_flutter_sdk'
   path_provider: ^2.0.8
   intl: ^0.17.0
   flutter_vector_icons: ^1.0.0

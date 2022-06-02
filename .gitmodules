@@ -1,0 +1,3 @@
+[submodule "appwrite_console_flutter_sdk"]
+	path = appwrite_console_flutter_sdk
+	url = https://github.com/tannermeade/appwrite_console_flutter_sdk.git
