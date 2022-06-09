@@ -24,13 +24,13 @@ If you want to say thank you, star us on GitHub  🙌💙
 
 The purpose of DataMigrator is to provide a universal translator for data by being portable, diverse, and efficient in migrating and converting data across discrete schemas.
 
-Right now, it is only developed against macOS (Windows and Linux will be officially developed against soon). It shouldn't be too hard to get it running on those targets though.
+Right now, it is only developed against macOS & Windows (Linux will be officially developed against soon). It shouldn't be too hard to get it running on Linux though.
 
-To get it running on macOS, [install Flutter](https://docs.flutter.dev/get-started/install/macos "install Flutter") and make sure to add the flutter tool to your path.
+To get it running on macOS or Windows, [install Flutter](https://docs.flutter.dev/get-started/install/macos "install Flutter"), make sure to add the flutter tool to your path, and follow the other steps outlined to in the Flutter guide.
 
-Then make sure to run `flutter config --enable-macos-desktop ` to enable the macOS target.
+If on macoS, make sure to run `flutter config --enable-macos-desktop ` to enable the macOS target.
 
-Clone this repo, navigate to the directory in terminal, and execute `flutter run`. Choose macOS for the target if it prompts you.
+Clone this repo, navigate to the directory in terminal, execute `git submodule init` to pull the appwrite console sdk repo, and execute `flutter run` to run the app. Choose macOS/Windows for the target if it prompts you.
 
 ## Architecture
 
