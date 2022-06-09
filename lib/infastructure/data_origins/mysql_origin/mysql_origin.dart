@@ -3,9 +3,14 @@ import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
 import 'package:data_migrator/domain/data_types/schema_data_type.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
 import 'package:data_migrator/infastructure/data_origins/data_origin.dart';
+import 'package:data_migrator/infastructure/data_origins/data_origin_configration.dart';
+import 'package:data_migrator/infastructure/data_origins/mysql_origin/mysql_configuration.dart';
 
 class MysqlOrigin extends DataOrigin {
   MysqlOrigin() : super();
+
+  @override
+  MySQLConfiguration get config => MySQLConfiguration();
 
   @override
   bool get isConversionReady => false;

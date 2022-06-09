@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart';
 import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
-import 'package:data_migrator/domain/data_types/schema_data_type.dart';
+import 'package:data_migrator/infastructure/data_origins/csv_origin/csv_configuration.dart';
 import 'package:data_migrator/infastructure/data_origins/data_origin.dart';
 import 'package:data_migrator/domain/data_types/schema_field.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
@@ -14,6 +14,9 @@ class CsvOrigin extends DataOrigin {
   CsvOrigin() : super();
 
   List<CsvFile> csvFiles = [];
+
+  @override
+  CSVConfiguration get config => CSVConfiguration();
 
   @override
   bool get isConversionReady => csvFiles.isNotEmpty;

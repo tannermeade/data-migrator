@@ -10,6 +10,7 @@ class AppwriteFileGroup {
     this.streamSubscription,
     // this.schemaAddress,
     required this.collectionId,
+    required this.fields,
   }) : this.files = files ?? [];
 
   File get lastFile => files.last;
@@ -20,6 +21,7 @@ class AppwriteFileGroup {
   int? dataWriteByteCount;
   // List<int>? schemaAddress;
   String collectionId;
+  List<String> fields;
   StreamController<List<List>>? streamController;
   StreamSubscription<List<List>>? streamSubscription;
 }

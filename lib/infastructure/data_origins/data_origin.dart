@@ -3,29 +3,38 @@ import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
 import 'package:data_migrator/domain/data_types/schema_data_type.dart';
 import 'package:data_migrator/domain/data_types/schema_field.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
+import 'package:data_migrator/infastructure/data_origins/data_origin_configration.dart';
 
 abstract class DataOrigin {
   DataOrigin();
 
+  // Schema Template Modification
   List<SchemaMap> getSchema();
   void deleteFromSchema({required SchemaObject schemaObj});
   void addToSchema({required SchemaObject newObj, required SchemaObject parentObj});
   void updateSchema({required SchemaObject newObj, required SchemaObject oldObj});
+  DataOriginConfiguration get config;
 
+  // Conversion Pipeline: SOURCE
   Stream<List<List>>? getDataStream(List<int> schemaIndex);
   Stream<List<List>> startDataStream(List<int> schemaIndex);
   Stream<List<List>>? playDataStream(List<int> schemaIndex);
   void pauseDataStream(List<int> schemaIndex);
   void endDataStream(List<int> schemaIndex);
 
+  // Conversion Pipeline: DESTINATION
   Sink<List<List>>? getDataSink(List<int> schemaIndex);
   Future<Sink<List<List>>> openDataSink(List<int> schemaIndex);
   void closeDataSink(List<int> schemaIndex);
 
+  // Conversion Validation
   Future<List<ConfirmationData>> validate();
-
   bool get isConversionReady;
 
+  // Updates a node in the schema tree.
+  //  obj: The object being inspected
+  //  hashcode: The hashcode of the target to be replaced
+  //  newObj: The object that will replace the target
   dynamic updateSchemaRecursive(dynamic obj, dynamic hashCode, SchemaObject newObj) {
     List list;
     if (obj is List) {
@@ -83,6 +92,9 @@ abstract class DataOrigin {
     return null;
   }
 
+  // Deletes a node in the schema tree.
+  //  obj: The object being inspected
+  //  hashcode: The hashcode of the target to be replaced
   dynamic deleteFromSchemaRecursive(dynamic obj, dynamic hashCode) {
     List list;
     if (obj is List) {

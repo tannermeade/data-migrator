@@ -1,0 +1,17 @@
+{
+    "projectId": "62a0d6ae3b68b9ec1206",
+    "projectName": "testing_proj",
+    "functions": [
+        {
+            "$id": "MigratorInsertFunctionId",
+            "name": "Migrator Insert Function",
+            "runtime": "python-3.10",
+            "path": "functions/DataMigrator_Insert_Function",
+            "entrypoint": "src/index.py",
+            "execute": [],
+            "events": [],
+            "schedule": "",
+            "timeout": 15
+        }
+    ]
+}

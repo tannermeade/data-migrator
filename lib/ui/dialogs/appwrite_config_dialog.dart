@@ -49,7 +49,7 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
     _passwordController = TextEditingController();
     _endpointController = TextEditingController(text: "");
     _apiKeyController = TextEditingController(text: widget.data.dataOrigin.currentAPIKey);
-    _bundleSizeController = TextEditingController(text: widget.data.dataOrigin.bundleByteSize.toString());
+    _bundleSizeController = TextEditingController(text: widget.data.dataOrigin.config.bundleByteSize.toString());
 
     super.initState();
   }
@@ -447,7 +447,7 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
             color: AlpineColors.buttonColor2,
             isFilled: true,
             onTap: () async {
-              widget.data.dataOrigin.bundleByteSize = int.parse(_bundleSizeController.text);
+              widget.data.dataOrigin.config.bundleByteSize = int.parse(_bundleSizeController.text);
               // await widget.data.dataOrigin.deleteAllFiles();
             },
           ),

@@ -37,16 +37,16 @@ class _MyHomePageState extends State<MyHomePage> {
               var sourceOrigin = ref.read(sourceOriginProvider);
               var destinationOrigin = ref.read(destinationOriginProvider);
               var converter = ref.read(converterProvider);
-              try {
-                await converter.startConversion(
-                  destination: destinationOrigin,
-                  source: sourceOrigin,
-                  sourceAddress: [0],
-                  onConfirm: _handleConversionConfirmations,
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
-              }
+              // try {
+              await converter.startConversion(
+                destination: destinationOrigin,
+                source: sourceOrigin,
+                sourceAddress: [0],
+                onConfirm: _handleConversionConfirmations,
+              );
+              // } catch (e) {
+              // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+              // }
               // bool validConversions = false;
               // try {
               //   validConversions = converter.validateConversions(sourceOrigin, destinationOrigin);

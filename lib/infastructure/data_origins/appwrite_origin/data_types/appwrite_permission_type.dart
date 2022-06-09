@@ -1,0 +1,4 @@
+enum AppwritePermissionType {
+  database,
+  storage,
+}
