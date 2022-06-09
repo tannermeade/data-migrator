@@ -211,9 +211,11 @@ class _ConvertSchemaFieldWidgetState extends State<ConvertSchemaFieldWidget> {
           ),
           items: (uniqueFields ?? schemaMapFields)
               .map((f) => DropdownMenuItem<SchemaField>(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Wrap(
+                    clipBehavior: Clip.antiAlias,
+                    direction: Axis.vertical,
+                    crossAxisAlignment: WrapCrossAlignment.start,
+                    runAlignment : WrapAlignment.center,
                     children: [
                       Text(
                         converter.getAddress(dataOrigin.getSchema(), f).toString(),
@@ -221,7 +223,7 @@ class _ConvertSchemaFieldWidgetState extends State<ConvertSchemaFieldWidget> {
                       ),
                       Text(
                         f.title,
-                        style: TextStyle(color: AlpineColors.textColor2),
+                        style: TextStyle(color: AlpineColors.textColor2, fontSize: 12),
                       ),
                       Text(
                         f.types.map((e) => e.readableString()).join(', '),
