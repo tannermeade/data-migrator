@@ -214,28 +214,29 @@ class _EditSchemaMapDialogState extends State<EditSchemaMapDialog> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Consumer(builder: (context, ref, child) {
-                  return AlpineButton(
-                    label: "Save",
-                    color: AlpineColors.buttonColor2,
-                    isFilled: true,
-                    onTap: () {
-                      var dataOrigin = ref.read(
-                          widget.data.forOrigin == Origin.source ? sourceOriginProvider : destinationOriginProvider);
-                      dataOrigin.updateSchema(
-                        newObj: SchemaMap.copyWith(
-                          schemaMap,
-                          id: _idController.text,
-                          name: _nameController.text,
-                        ),
-                        oldObj: widget.data.schemaMap,
-                      );
-                      // schemaMap.id = _idController.text;
-                      // schemaMap.name = _nameController.text;
-                      Navigator.pop(context);
-                    },
-                  );
-                }),
+                if (schemaMap.mutable)
+                  Consumer(builder: (context, ref, child) {
+                    return AlpineButton(
+                      label: "Save",
+                      color: AlpineColors.buttonColor2,
+                      isFilled: true,
+                      onTap: () {
+                        var dataOrigin = ref.read(
+                            widget.data.forOrigin == Origin.source ? sourceOriginProvider : destinationOriginProvider);
+                        dataOrigin.updateSchema(
+                          newObj: SchemaMap.copyWith(
+                            schemaMap,
+                            id: _idController.text,
+                            name: _nameController.text,
+                          ),
+                          oldObj: widget.data.schemaMap,
+                        );
+                        // schemaMap.id = _idController.text;
+                        // schemaMap.name = _nameController.text;
+                        Navigator.pop(context);
+                      },
+                    );
+                  }),
                 const SizedBox(width: 10),
                 AlpineButton(
                   label: "Cancel",

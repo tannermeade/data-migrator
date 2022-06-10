@@ -1,3 +1,4 @@
+import 'package:data_migrator/domain/data_types/enums.dart';
 import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
 
 import 'permission_model.dart';
@@ -16,7 +17,7 @@ class SchemaMap implements SchemaDataType, SchemaObject {
     this.createdOn,
     this.enabled,
     this.mutable = true,
-    this.classification,
+    this.classification = SchemaClassification.regular,
   })  : fields = List.unmodifiable(fields),
         indices = List.unmodifiable(indices);
 
@@ -29,7 +30,7 @@ class SchemaMap implements SchemaDataType, SchemaObject {
   final DateTime? createdOn;
   final bool? enabled;
   final bool mutable;
-  final Enum? classification;
+  final SchemaClassification classification;
 
   SchemaMap.copyWith(
     SchemaMap other, {
@@ -42,7 +43,7 @@ class SchemaMap implements SchemaDataType, SchemaObject {
     DateTime? createdOn,
     bool? enabled,
     bool? mutable,
-    Enum? classification,
+    SchemaClassification? classification,
   })  : name = name ?? other.name,
         id = id ?? other.id,
         fields = fields ?? other.fields,

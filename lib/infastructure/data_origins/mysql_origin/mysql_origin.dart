@@ -90,4 +90,12 @@ class MysqlOrigin extends DataOrigin {
     // TODO: implement validate
     throw UnimplementedError();
   }
+
+  @override
+  void addCustomSchema(Type type) {
+    // TODO: implement addCustomSchema
+  }
+
+  @override
+  Map<String, Type> getCustomSchemaTypes() => {};
 }

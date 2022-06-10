@@ -38,6 +38,7 @@ enum StringType {
   url,
   email,
   ip,
+  id, // Valid chars are a-z, A-Z, 0-9, and underscore. Can't start with a leading underscore
 }
 
 enum DateType {
@@ -53,4 +54,9 @@ enum FieldStatus {
   failed,
   processing,
   none,
+}
+
+enum SchemaClassification {
+  regular,
+  appwriteUsers,
 }

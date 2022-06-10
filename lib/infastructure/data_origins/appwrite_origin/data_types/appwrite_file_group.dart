@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:console_flutter_sdk/models.dart' as model;
+import 'package:data_migrator/domain/data_types/schema_map.dart';
 
 class AppwriteFileGroup {
   AppwriteFileGroup({
@@ -10,7 +11,7 @@ class AppwriteFileGroup {
     this.streamSubscription,
     // this.schemaAddress,
     required this.collectionId,
-    required this.fields,
+    required this.schemaMap,
   }) : this.files = files ?? [];
 
   File get lastFile => files.last;
@@ -21,7 +22,7 @@ class AppwriteFileGroup {
   int? dataWriteByteCount;
   // List<int>? schemaAddress;
   String collectionId;
-  List<String> fields;
+  SchemaMap schemaMap;
   StreamController<List<List>>? streamController;
   StreamSubscription<List<List>>? streamSubscription;
 }

@@ -1,5 +1,6 @@
 import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart';
 import 'package:data_migrator/domain/conversion/conversion/convert_schema_map.dart';
+import 'package:data_migrator/infastructure/data_origins/appwrite_origin/data_types/custom_schema_types.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_colors.dart';
 import 'package:data_migrator/ui/common/values/enums.dart';
 import 'package:data_migrator/ui/common/widgets/convert_schema_map_widget.dart';
@@ -37,16 +38,17 @@ class _MyHomePageState extends State<MyHomePage> {
               var sourceOrigin = ref.read(sourceOriginProvider);
               var destinationOrigin = ref.read(destinationOriginProvider);
               var converter = ref.read(converterProvider);
-              // try {
-              await converter.startConversion(
-                destination: destinationOrigin,
-                source: sourceOrigin,
-                sourceAddress: [0],
-                onConfirm: _handleConversionConfirmations,
-              );
-              // } catch (e) {
-              // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
-              // }
+              try {
+                await converter.startConversion(
+                  destination: destinationOrigin,
+                  source: sourceOrigin,
+                  sourceAddress: [0],
+                  onConfirm: _handleConversionConfirmations,
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+              }
+
               // bool validConversions = false;
               // try {
               //   validConversions = converter.validateConversions(sourceOrigin, destinationOrigin);
@@ -254,6 +256,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: AlpineButton(
                     onTap: () => setState(() => destinationOrigin.addSchemaFromSchema(sourceOrigin.getSchema())),
                     label: "Add from Source",
+                    color: AlpineColors.buttonColor2,
+                    isFilled: true,
+                    fontSize: 14,
+                    // padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                  child: AlpineButton(
+                    onTap: () => setState(() => destinationOrigin.addCustomSchema(AppwriteUserSchema)),
+                    label: "Add User Schema",
                     color: AlpineColors.buttonColor2,
                     isFilled: true,
                     fontSize: 14,

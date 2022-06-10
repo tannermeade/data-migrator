@@ -296,4 +296,12 @@ class CsvOrigin extends DataOrigin {
     if (csvFiles.isEmpty) throw Exception("No CSV files selected.");
     return [];
   }
+
+  @override
+  void addCustomSchema(Type type) {
+    // TODO: implement addCustomSchema
+  }
+
+  @override
+  Map<String, Type> getCustomSchemaTypes() => {};
 }

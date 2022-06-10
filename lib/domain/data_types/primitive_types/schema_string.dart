@@ -60,5 +60,5 @@ class SchemaString implements SchemaDataType, SchemaNullable, SchemaSizeInt, Sch
   String toString() => "SchemaString(${type.name})";
 
   @override
-  String readableString() => "string";
+  String readableString() => "string(${type.name})";
 }

@@ -13,6 +13,8 @@ abstract class DataOrigin {
   void deleteFromSchema({required SchemaObject schemaObj});
   void addToSchema({required SchemaObject newObj, required SchemaObject parentObj});
   void updateSchema({required SchemaObject newObj, required SchemaObject oldObj});
+  Map<String, Type> getCustomSchemaTypes();
+  void addCustomSchema(Type type);
   DataOriginConfiguration get config;
 
   // Conversion Pipeline: SOURCE

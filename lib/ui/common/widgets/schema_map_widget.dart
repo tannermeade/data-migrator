@@ -1,3 +1,4 @@
+import 'package:data_migrator/domain/data_types/enums.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_colors.dart';
 import 'package:data_migrator/ui/common/values/enums.dart';
@@ -70,6 +71,16 @@ class SchemaMapWidget extends StatelessWidget {
             ),
           ],
         ),
+        if (schemaMap.classification != SchemaClassification.regular)
+          Container(
+            alignment: Alignment.topLeft,
+            child: Tooltip(
+                message: "This is a custom SchemaMap that will be handled in a special way when migrating data.",
+                child: Text(
+                  "custom",
+                  style: TextStyle(color: Colors.grey.withOpacity(0.5)),
+                )),
+          ),
         if (forOrigin != null)
           Container(
             alignment: Alignment.topRight,

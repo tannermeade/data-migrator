@@ -3,6 +3,7 @@ import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart'
 import 'package:data_migrator/domain/data_types/interfaces/schema_object.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
 import 'package:data_migrator/infastructure/data_origins/appwrite_origin/data_types/appwrite_configuration.dart';
+import 'package:data_migrator/infastructure/data_origins/appwrite_origin/data_types/custom_schema_types.dart';
 import 'package:data_migrator/infastructure/data_origins/appwrite_origin/tools/appwrite_adapter.dart';
 import 'package:data_migrator/infastructure/data_origins/appwrite_origin/tools/appwrite_pipeline_destination.dart';
 import 'package:data_migrator/infastructure/data_origins/appwrite_origin/tools/appwrite_schema_modification.dart';
@@ -61,6 +62,22 @@ class AppwriteOrigin extends DataOrigin {
   void updateSchema({required SchemaObject newObj, required SchemaObject oldObj}) {
     var result = updateSchemaRecursive(_schema, oldObj.hashCode, newObj);
     _schema = result;
+  }
+
+  @override
+  Map<String, Type> getCustomSchemaTypes() => {
+        "User Schema": AppwriteUserSchema,
+      };
+
+  @override
+  void addCustomSchema(Type type) {
+    switch (type) {
+      case AppwriteUserSchema:
+        _schema.add(AppwriteUserSchema());
+        return;
+      default:
+        throw Exception("The AppwriteOrigin only supports AppwriteUserSchema for a custom schema.");
+    }
   }
 
   @override
