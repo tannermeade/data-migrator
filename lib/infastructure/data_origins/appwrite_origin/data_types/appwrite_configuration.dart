@@ -19,6 +19,7 @@ class AppwriteConfiguration extends DataOriginConfiguration {
   models.Session? session;
   final Client client;
   models.Project? selectedProject;
+  models.Database? selectedDatabase;
   models.Funct? migratorFunct;
   final String migratorFunctionId = "MigratorInsertFunctionId";
   models.Deployment? migratorFunctDeployment;

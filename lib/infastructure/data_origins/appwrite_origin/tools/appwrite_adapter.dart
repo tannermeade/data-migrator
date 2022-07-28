@@ -67,10 +67,19 @@ class AppwriteAdapter {
             .setEndpoint(endpoint) // Your API Endpoint
             .setProject('console') // Your project ID
         ;
-    config.session = await account.createSession(email: email, password: password);
+    config.session = await account.createEmailSession(email: email, password: password);
     config.endpoint = endpoint;
     print("logged in...");
     print(config.session != null ? config.session!.toMap() : config.session);
+
+    await selectFirstDatabase();
+  }
+
+  Future selectFirstDatabase() async {
+    var dbList = await Databases(config.client, databaseId: '').list();
+    if (dbList.databases.isNotEmpty) {
+      config.selectedDatabase = dbList.databases.first;
+    }
   }
 
   Future selectProject(models.Project project) async {
@@ -86,9 +95,12 @@ class AppwriteAdapter {
   }
 
   Future<models.Collection?> getCollection(SchemaMap schemaObj) async {
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
+
     if (schemaObj.id != null) {
       try {
-        var collection = await Database(config.client).getCollection(collectionId: schemaObj.id!);
+        var collection = await Databases(config.client, databaseId: config.selectedDatabase!.$id)
+            .getCollection(collectionId: schemaObj.id!);
         return collection;
       } catch (e) {
         print("Collection doesn't exist. Creating it now.");
@@ -98,14 +110,18 @@ class AppwriteAdapter {
   }
 
   Future<models.CollectionList> getCollections() async {
-    var db = Database(config.client);
-    var collections = await db.listCollections();
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
+
+    var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
+    var collections = await dbs.listCollections();
     return collections;
   }
 
   Future<models.Collection> createCollection(SchemaMap schemaObj) async {
-    var db = Database(config.client);
-    var collection = await db.createCollection(
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
+
+    var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
+    var collection = await dbs.createCollection(
       collectionId: schemaObj.id != null && schemaObj.id!.isNotEmpty ? schemaObj.id! : "unique()",
       name: schemaObj.name,
       permission:
@@ -115,21 +131,25 @@ class AppwriteAdapter {
     );
 
     for (var field in schemaObj.fields) {
-      await _createAttribute(db, collection.$id, field);
+      await _createAttribute(dbs, collection.$id, field);
     }
     return collection;
   }
 
   Future deleteCollection(SchemaMap schemaMap) async {
     if (schemaMap.id == null) throw Exception("Can't delete collection without an id.");
-    var db = Database(config.client);
-    db.deleteCollection(collectionId: schemaMap.id!);
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
+
+    var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
+    dbs.deleteCollection(collectionId: schemaMap.id!);
   }
 
   Future<models.Collection> updateCollection(SchemaMap schemaObj) async {
     if (schemaObj.id == null) throw Exception("Can't update a collection with a SchemaMap that can a null id.");
-    var db = Database(config.client);
-    var collection = await db.updateCollection(
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
+
+    var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
+    var collection = await dbs.updateCollection(
       collectionId: schemaObj.id!,
       name: schemaObj.name,
       permission:
@@ -142,7 +162,7 @@ class AppwriteAdapter {
     await _editAttributes(
       attributes: collection.attributes,
       collectionId: collection.$id,
-      db: db,
+      dbs: dbs,
       schemaMap: schemaObj,
       commitEdits: true,
     );
@@ -151,7 +171,7 @@ class AppwriteAdapter {
   }
 
   Future<List<SchemaField>> _editAttributes({
-    required Database db,
+    required Databases dbs,
     required List attributes,
     required SchemaMap schemaMap,
     required String collectionId,
@@ -195,8 +215,8 @@ class AppwriteAdapter {
         if (recreateAttribute) {
           fieldsChanged.add(field);
           if (commitEdits) {
-            await db.deleteAttribute(collectionId: collectionId, key: attr["key"]);
-            var resultModel = await _createAttribute(db, collectionId, field);
+            await dbs.deleteAttribute(collectionId: collectionId, key: attr["key"]);
+            var resultModel = await _createAttribute(dbs, collectionId, field);
             if (resultModel == null) {
               throw Exception("An error happened when recreating attribute for collection($collectionId). "
                   "SchemaField:${field.title}");
@@ -208,7 +228,7 @@ class AppwriteAdapter {
         print("no SchemaField found for attribute... it needs to be deleted");
         try {
           if (commitEdits) {
-            await db.deleteAttribute(collectionId: collectionId, key: attr["key"]);
+            await dbs.deleteAttribute(collectionId: collectionId, key: attr["key"]);
           }
           fieldsChanged.add(SchemaField(
             title: attr["key"] ?? "NO_FIELD_KEY",
@@ -229,7 +249,7 @@ class AppwriteAdapter {
       if (!found) {
         fieldsChanged.add(field);
         if (commitEdits) {
-          var resultModel = await _createAttribute(db, collectionId, field);
+          var resultModel = await _createAttribute(dbs, collectionId, field);
           if (resultModel == null) {
             throw Exception("An error happened when recreating attribute for collection($collectionId). "
                 "SchemaField:${field.title}");
@@ -241,7 +261,7 @@ class AppwriteAdapter {
     return fieldsChanged;
   }
 
-  Future<models.Model?> _createAttribute(Database db, String collectionId, SchemaField field) async {
+  Future<models.Model?> _createAttribute(Databases dbs, String collectionId, SchemaField field) async {
     if (field.types.isEmpty) {
       print("WARNING!!!!!!!! Creating Appwrite Collection with attribute ${field.title} of "
           "SchemaString because it has no types.");
@@ -256,7 +276,7 @@ class AppwriteAdapter {
           case StringType.text:
           case StringType.mediumText:
           case StringType.longText:
-            attribute = await db.createStringAttribute(
+            attribute = await dbs.createStringAttribute(
               collectionId: collectionId,
               key: field.title,
               size: type.size ?? 255,
@@ -265,7 +285,7 @@ class AppwriteAdapter {
             );
             break;
           case StringType.url:
-            attribute = await db.createUrlAttribute(
+            attribute = await dbs.createUrlAttribute(
               collectionId: collectionId,
               key: field.title,
               xrequired: field.required,
@@ -273,7 +293,7 @@ class AppwriteAdapter {
             );
             break;
           case StringType.email:
-            attribute = await db.createEmailAttribute(
+            attribute = await dbs.createEmailAttribute(
               collectionId: collectionId,
               key: field.title,
               xrequired: field.required,
@@ -281,7 +301,7 @@ class AppwriteAdapter {
             );
             break;
           case StringType.ip:
-            attribute = await db.createIpAttribute(
+            attribute = await dbs.createIpAttribute(
               collectionId: collectionId,
               key: field.title,
               xrequired: field.required,
@@ -293,7 +313,7 @@ class AppwriteAdapter {
         break;
       case SchemaInt:
         var type = field.types.first as SchemaInt;
-        attribute = await db.createIntegerAttribute(
+        attribute = await dbs.createIntegerAttribute(
           collectionId: collectionId,
           key: field.title,
           max: type.max,
@@ -304,7 +324,7 @@ class AppwriteAdapter {
         break;
       case SchemaFloat:
         var type = field.types.first as SchemaFloat;
-        attribute = await db.createFloatAttribute(
+        attribute = await dbs.createFloatAttribute(
           collectionId: collectionId,
           key: field.title,
           max: type.max,
@@ -315,7 +335,7 @@ class AppwriteAdapter {
         break;
       case SchemaBoolean:
         var type = field.types.first as SchemaBoolean;
-        attribute = await db.createBooleanAttribute(
+        attribute = await dbs.createBooleanAttribute(
           collectionId: collectionId,
           key: field.title,
           xrequired: false,
@@ -324,7 +344,7 @@ class AppwriteAdapter {
         break;
       case SchemaEnum:
         var type = field.types.first as SchemaEnum;
-        attribute = await db.createEnumAttribute(
+        attribute = await dbs.createEnumAttribute(
           collectionId: collectionId,
           key: field.title,
           xrequired: false,
@@ -409,7 +429,7 @@ class AppwriteAdapter {
 
     // send path-ed file
     return InputFile(
-      file: await MultipartFile.fromPath('code', file.path),
+      // file: await MultipartFile.fromPath('code', file.path),
       path: file.path,
       filename: migratorCodeFilename,
     );
@@ -494,16 +514,12 @@ class AppwriteAdapter {
       if (config.migratorFunctDeployment == null) {
         throw Exception();
       }
-      models.DeploymentList deploymentList = await functions.getDeployment(
+      models.Deployment deployment = await functions.getDeployment(
         functionId: config.migratorFunct!.$id,
         deploymentId: config.migratorFunctDeployment!.$id,
       );
-      if (deploymentList.total > 1) {
-        if (!deploymentList.deployments.firstWhere((d) => d.$id == config.migratorFunctDeployment!.$id).activate) {
-          _updateDeployment(functions, config.migratorFunct!.$id, config.migratorFunctDeployment!.$id);
-        }
-      } else {
-        throw Exception();
+      if (!deployment.activate) {
+        _updateDeployment(functions, config.migratorFunct!.$id, config.migratorFunctDeployment!.$id);
       }
     } catch (e) {
       // create new deployment
@@ -656,11 +672,13 @@ class AppwriteAdapter {
   }
 
   Future _deleteAttributeFromChange(String collectionId, SchemaChange fieldChange) async {
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
     if (fieldChange.changeType != ChangeType.delete && fieldChange.changeType != ChangeType.update) {
       throw Exception("Can't delete an attribute that isn't a delete change.");
     }
-    var db = Database(config.client);
-    await db.deleteAttribute(collectionId: collectionId, key: fieldChange.id);
+    
+    var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
+    await dbs.deleteAttribute(collectionId: collectionId, key: fieldChange.id);
   }
 
   Future updateAttributeFromChange(String collectionId, SchemaChange fieldChange) async {
@@ -669,11 +687,13 @@ class AppwriteAdapter {
   }
 
   Future _createAttributeFromChange(String collectionId, SchemaChange fieldChange) async {
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
+
     var types = fieldChange["types"];
     if (types is! List || types.length != 1) throw Exception("Not 1 type in fieldChange.");
 
     await _createAttributeTypeFromChange(
-      db: Database(config.client),
+      dbs: Databases(config.client, databaseId: config.selectedDatabase!.$id),
       collectionId: collectionId,
       type: types.first,
       change: fieldChange,
@@ -681,7 +701,7 @@ class AppwriteAdapter {
   }
 
   Future<models.Model?> _createAttributeTypeFromChange({
-    required Database db,
+    required Databases dbs,
     required String collectionId,
     required SchemaDataType type,
     required SchemaChange change,
@@ -700,7 +720,7 @@ class AppwriteAdapter {
           case StringType.mediumText:
           case StringType.longText:
             attribute = await _tryWaitTry<models.AttributeString>(
-              tryThis: () async => await db.createStringAttribute(
+              tryThis: () async => await dbs.createStringAttribute(
                 collectionId: collectionId,
                 key: fieldTitle,
                 size: type.size ?? 255,
@@ -711,7 +731,7 @@ class AppwriteAdapter {
             break;
           case StringType.url:
             attribute = await _tryWaitTry<models.AttributeUrl>(
-              tryThis: () async => await db.createUrlAttribute(
+              tryThis: () async => await dbs.createUrlAttribute(
                 collectionId: collectionId,
                 key: fieldTitle,
                 xrequired: fieldRequired,
@@ -722,7 +742,7 @@ class AppwriteAdapter {
             break;
           case StringType.email:
             attribute = await _tryWaitTry<models.AttributeEmail>(
-              tryThis: () async => await db.createEmailAttribute(
+              tryThis: () async => await dbs.createEmailAttribute(
                 collectionId: collectionId,
                 key: fieldTitle,
                 xrequired: fieldRequired,
@@ -732,7 +752,7 @@ class AppwriteAdapter {
             break;
           case StringType.ip:
             attribute = await _tryWaitTry<models.AttributeIp>(
-              tryThis: () async => await db.createIpAttribute(
+              tryThis: () async => await dbs.createIpAttribute(
                 collectionId: collectionId,
                 key: fieldTitle,
                 xrequired: fieldRequired,
@@ -745,7 +765,7 @@ class AppwriteAdapter {
         break;
       case SchemaInt:
         attribute = await _tryWaitTry<models.AttributeInteger>(
-          tryThis: () async => await db.createIntegerAttribute(
+          tryThis: () async => await dbs.createIntegerAttribute(
             collectionId: collectionId,
             key: fieldTitle,
             max: (type as SchemaInt).max,
@@ -757,7 +777,7 @@ class AppwriteAdapter {
         break;
       case SchemaFloat:
         attribute = await _tryWaitTry<models.AttributeFloat>(
-          tryThis: () async => await db.createFloatAttribute(
+          tryThis: () async => await dbs.createFloatAttribute(
             collectionId: collectionId,
             key: fieldTitle,
             max: (type as SchemaFloat).max != null ? type.max : null,
@@ -769,7 +789,7 @@ class AppwriteAdapter {
         break;
       case SchemaBoolean:
         attribute = await _tryWaitTry<models.AttributeBoolean>(
-          tryThis: () async => await db.createBooleanAttribute(
+          tryThis: () async => await dbs.createBooleanAttribute(
             collectionId: collectionId,
             key: fieldTitle,
             xrequired: fieldRequired,
@@ -779,7 +799,7 @@ class AppwriteAdapter {
         break;
       case SchemaEnum:
         attribute = await _tryWaitTry<models.AttributeEnum>(
-          tryThis: () async => await db.createEnumAttribute(
+          tryThis: () async => await dbs.createEnumAttribute(
             collectionId: collectionId,
             key: fieldTitle,
             xrequired: fieldRequired,
@@ -795,11 +815,12 @@ class AppwriteAdapter {
   }
 
   Future<models.Collection> _updateCollectionFromChange(SchemaMapChange schemaMapChange) async {
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
     if (schemaMapChange.id == null || schemaMapChange.id!.isEmpty) {
       throw Exception("Can't update colelction from change with no id");
     }
 
-    var db = Database(config.client);
+    var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
     String name;
     try {
       name = schemaMapChange.changes.firstWhere((c) => c.key == "name").value;
@@ -812,7 +833,7 @@ class AppwriteAdapter {
       writeAccess: [],
     );
 
-    var collection = await db.updateCollection(
+    var collection = await dbs.updateCollection(
       collectionId: schemaMapChange.id!,
       name: name,
       permission: _permissionModelToStr(permModel.level),
@@ -824,7 +845,9 @@ class AppwriteAdapter {
   }
 
   Future<models.Collection> _createCollectionFromChange(SchemaMapChange schemaMapChange) async {
-    var db = Database(config.client);
+    if (config.selectedDatabase == null) throw Exception('No Database Selected');
+
+    var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
     String name;
     try {
       name = schemaMapChange.changes.firstWhere((c) => c.key == "name").value;
@@ -840,7 +863,7 @@ class AppwriteAdapter {
       writeAccess: [],
     );
 
-    var collection = await db.createCollection(
+    var collection = await dbs.createCollection(
       collectionId: schemaMapChange.id != null && schemaMapChange.id!.isNotEmpty ? schemaMapChange.id! : "unique()",
       name: name,
       permission: _permissionModelToStr(permModel.level),

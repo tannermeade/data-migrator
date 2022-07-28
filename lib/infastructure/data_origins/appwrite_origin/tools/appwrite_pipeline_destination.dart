@@ -193,9 +193,9 @@ class AppwritePipelineDestination {
   }
 
   Future<models.File> _uploadFile(AppwriteUploadEvent uploadEvent) async {
-    var multipartFile = await MultipartFile.fromPath("file", uploadEvent.file.path);
+    // var multipartFile = await MultipartFile.fromPath("file", uploadEvent.file.path);
     var inputFile = InputFile(
-      file: multipartFile,
+      // file: multipartFile,
       path: uploadEvent.file.path,
       filename: basename(uploadEvent.file.path),
     );
