@@ -30,7 +30,7 @@ To get it running on macOS or Windows, [install Flutter](https://docs.flutter.de
 
 If on macoS, make sure to run `flutter config --enable-macos-desktop ` to enable the macOS target.
 
-Clone this repo, navigate to the directory in terminal, execute `git submodule init` to pull the appwrite console sdk repo, and execute `flutter run` to run the app. Choose macOS/Windows for the target if it prompts you.
+Clone this repo, navigate to the directory in terminal, execute `git submodule init` to pull the appwrite console sdk repo, and execute `flutter run` to run the app. Choose macOS/Windows for the target if it prompts you. In case the submodule folder is empty run `git submodule update` to pull the contents for the submodule.
 
 ## Architecture
 
