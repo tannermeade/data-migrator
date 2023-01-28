@@ -5,12 +5,12 @@ import 'convert_schema_obj.dart';
 
 class ConvertSchemaMap implements ConvertSchemaObj {
   ConvertSchemaMap({
-    required this.connections,
+    required this.fieldConversions,
     this.sourceSchemaMap,
     this.destinationSchemaMap,
   });
 
-  List<ConvertSchemaField> connections;
+  List<ConvertSchemaField> fieldConversions;
   List<int>? sourceSchemaMap;
   List<int>? destinationSchemaMap;
 
@@ -24,7 +24,7 @@ class ConvertSchemaMap implements ConvertSchemaObj {
     }
     return ConvertSchemaMap(
       sourceSchemaMap: address,
-      connections: fields,
+      fieldConversions: fields,
     );
   }
 
@@ -33,7 +33,7 @@ class ConvertSchemaMap implements ConvertSchemaObj {
     return """ConvertSchemaMap(
       sourceSchemaMap:$sourceSchemaMap,
       destinationSchemaMap:$destinationSchemaMap,
-      connections:$connections,
+      fieldConversions:$fieldConversions,
       )""";
   }
 }

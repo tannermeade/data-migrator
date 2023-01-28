@@ -175,7 +175,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         const SizedBox(width: 10),
                         AlpineButton(
                           onTap: () => setState(() {
-                            converter.schemaConversions.add(ConvertSchemaMap(connections: []));
+                            converter.schemaConversions.add(ConvertSchemaMap(fieldConversions: []));
                           }),
                           label: "Add Conversion",
                           color: AlpineColors.buttonColor2,

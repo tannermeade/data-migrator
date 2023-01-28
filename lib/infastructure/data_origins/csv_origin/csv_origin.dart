@@ -173,14 +173,15 @@ class CsvOrigin extends DataOrigin {
       if (data.isEmpty) continue;
       // reset column counter
       x = 0;
-      // needs data.first because converter put row in a list
+      // needs data.first because converter puts row in a list
       for (var field in data.first) {
         // empty string don't provide valuable info on the data type
         bool isEmptyString = field.runtimeType == String && (field as String).isEmpty;
         if (i == 0) {
           // initialize sets
           fieldTypes.add(isEmptyString ? {} : {field.runtimeType});
-        } else if (!isEmptyString) {
+        } else {
+          // if (!isEmptyString)
           fieldTypes[x].add(field.runtimeType);
         }
         // increment column

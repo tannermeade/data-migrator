@@ -32,6 +32,7 @@ class AppwriteOrigin extends DataOrigin {
       _schema.isNotEmpty &&
       isAuthenticated &&
       _adapter.config.selectedProject != null &&
+      _adapter.config.selectedDatabase != null &&
       _adapter.config.endpoint != null &&
       _adapter.config.currentAPIKey != null &&
       _adapter.config.bundleByteSize > 0;
@@ -39,7 +40,9 @@ class AppwriteOrigin extends DataOrigin {
   bool get isAuthenticated =>
       _adapter.config.session != null &&
       DateTime.fromMillisecondsSinceEpoch(_adapter.config.session!.expire * 1000).compareTo(DateTime.now()) > 0;
+  
   model.Project? get selectedProject => _adapter.config.selectedProject;
+  model.Database? get selectedDatabase => _adapter.config.selectedDatabase;
   String? get currentEndpoint => _adapter.config.endpoint;
   set apiKey(String str) => _adapter.config.currentAPIKey = str;
   String? get currentAPIKey => _adapter.config.currentAPIKey;
@@ -123,7 +126,11 @@ class AppwriteOrigin extends DataOrigin {
 
   Future selectProject(model.Project project) async => await _adapter.selectProject(project);
 
+  void selectDatabase(model.Database database) => _adapter.selectDatabase(database);
+
   Future<model.ProjectList> getProjects() async => await _adapter.getProjects();
+
+  Future<model.DatabaseList> getDatabases() async => await _adapter.getDatabases();
 
   Future<List<SchemaMap>> getRemoteSchema() async {
     var collectionsList = await _adapter.getCollections();

@@ -1,23 +1,14 @@
-import 'dart:math';
-
 import 'package:data_migrator/infastructure/confirmation/confirmation_data.dart';
-import 'package:data_migrator/domain/data_types/schema_field.dart';
 import 'package:data_migrator/domain/data_types/schema_map.dart';
 import 'package:data_migrator/infastructure/confirmation/schema_change.dart';
 import 'package:data_migrator/infastructure/data_origins/appwrite_origin/appwrite_origin.dart';
-import 'package:data_migrator/infastructure/data_origins/data_origin.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_button.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_colors.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_close_button.dart';
-import 'package:data_migrator/ui/common/values/enums.dart';
-import 'package:data_migrator/ui/common/widgets/appwrite_project.dart';
 import 'package:data_migrator/ui/common/widgets/schema_map_widget.dart';
-import 'package:data_migrator/ui/dialog_handler.dart';
 import 'package:data_migrator/ui/common/values/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:console_flutter_sdk/models.dart' as aw;
 
 class ConversionConfirmationDialog extends StatefulWidget {
   const ConversionConfirmationDialog({

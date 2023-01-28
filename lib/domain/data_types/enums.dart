@@ -39,6 +39,13 @@ enum StringType {
   email,
   ip,
   id, // Valid chars are a-z, A-Z, 0-9, and underscore. Can't start with a leading underscore
+  argon2,
+  bcrypt,
+  md5, 
+  phpass,
+  scryptFirebase, 
+  scrypt, 
+  sha,
 }
 
 enum DateType {

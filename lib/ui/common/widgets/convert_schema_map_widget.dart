@@ -106,18 +106,18 @@ class _ConvertSchemaMapWidgetState extends State<ConvertSchemaMapWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Fields", style: TextStyle(color: AlpineColors.textColor2)),
-              AddWidget(onTap: () => setState(() => widget.convertSchemaMap.connections.add(ConvertSchemaField()))),
+              AddWidget(onTap: () => setState(() => widget.convertSchemaMap.fieldConversions.add(ConvertSchemaField()))),
             ],
           ),
         ),
-        if (widget.convertSchemaMap.connections.isEmpty)
+        if (widget.convertSchemaMap.fieldConversions.isEmpty)
           Text("No Field Connections", style: TextStyle(color: AlpineColors.warningColor.withOpacity(0.5))),
-        ...widget.convertSchemaMap.connections
+        ...widget.convertSchemaMap.fieldConversions
             .map((c) => ConvertSchemaFieldWidget(
                   convertSchemaField: c,
                   convertSchemaMap: widget.convertSchemaMap,
                   onDelete: () => setState(
-                    () => widget.convertSchemaMap.connections.removeWhere((el) => el.hashCode == c.hashCode),
+                    () => widget.convertSchemaMap.fieldConversions.removeWhere((el) => el.hashCode == c.hashCode),
                   ),
                 ))
             .toList(),

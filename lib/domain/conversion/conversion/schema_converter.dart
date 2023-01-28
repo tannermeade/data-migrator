@@ -60,11 +60,12 @@ class SchemaConverter {
 
     for (int i = 0; i < schemaConversions.length && i < destination.length; i++) {
       schemaConversions[i].destinationSchemaMap = [i];
-      for (int j = 0; j < schemaConversions[i].connections.length && j < destination[i].fields.length; j++) {
-        schemaConversions[i].connections[j].destinationSchemaField = [i, j];
-        schemaConversions[i].connections[j].connectionType = ConnectionType.direct;
+      for (int j = 0; j < schemaConversions[i].fieldConversions.length && j < destination[i].fields.length; j++) {
+        schemaConversions[i].fieldConversions[j].destinationSchemaField = [i, j];
+        schemaConversions[i].fieldConversions[j].level = ConnectionLevel.direct;
         source[i].fields[j].types;
-        var sourceField = getFromSchemaAddress(source, schemaConversions[i].connections[j].sourceSchemaField!);
+        var sourceField =
+            getFromSchemaAddress(source, schemaConversions[i].fieldConversions[j].defaultSourceSchemaField!);
         if (sourceField is SchemaField) {
           // check if all source dataTypes are in destination dataTypes
           bool destinationContainsAllSourceTypes = sourceField.types.fold<bool>(
@@ -82,7 +83,7 @@ class SchemaConverter {
                       destinationSchemaDataType: sourceDataType,
                     ))
                 .toList();
-            schemaConversions[i].connections[j].typeAdapters.addAll(typeAdapters);
+            schemaConversions[i].fieldConversions[j].defaultAdapters.addAll(typeAdapters);
           }
         }
       }
@@ -129,8 +130,8 @@ class SchemaConverter {
   }
 
   bool _hasMissingTypeAdapters(ConvertSchemaMap schemaMap) {
-    for (var field in schemaMap.connections) {
-      if (field.typeAdapters.isEmpty) return true;
+    for (var field in schemaMap.fieldConversions) {
+      if (field.defaultAdapters.isEmpty) return true;
     }
     return false;
   }
@@ -146,7 +147,7 @@ class SchemaConverter {
         List<List?> missingFields = [];
         requiredFieldAddresses.forEach((fieldAddr) {
           try {
-            schemaObj.connections.firstWhere((con) => listEquals(con.destinationSchemaField, fieldAddr));
+            schemaObj.fieldConversions.firstWhere((con) => listEquals(con.destinationSchemaField, fieldAddr));
           } catch (e) {
             missingFields.add(fieldAddr);
           }
@@ -174,7 +175,7 @@ class SchemaConverter {
     Future<bool> Function(List<ConfirmationData>)? onConfirm,
   }) async {
     // validate sourceAddress exists
-    ConvertSchemaMap convertConnection = _getConvertConnection(sourceAddress);
+    ConvertSchemaMap mapConversion = _getMapConversion(sourceAddress);
 
     // validate conversion & dataOrigins
     validateConversions(source, destination);
@@ -187,125 +188,87 @@ class SchemaConverter {
     }
 
     // start conversion
-    destinationSink = await destination.openDataSink(convertConnection.destinationSchemaMap!);
+    destinationSink = await destination.openDataSink(mapConversion.destinationSchemaMap!);
     source.startDataStream(sourceAddress).listen(
-          (event) => _handleConversionEvents(event, convertConnection, source, destination),
+          (sourceMapPayload) => _handleConversionEvents(sourceMapPayload, mapConversion, source, destination),
           onDone: () => destinationSink!.close(),
         );
   }
 
-  ConvertSchemaMap _getConvertConnection(List<int> sourceAddress) {
+  ConvertSchemaMap _getMapConversion(List<int> sourceAddress) {
     try {
-      var convertConnection = schemaConversions.firstWhere((el) => listEquals(el.sourceSchemaMap, sourceAddress));
-      if (convertConnection.destinationSchemaMap == null) throw Exception("Error: Conversion missing destination.");
-      return convertConnection;
+      var mapConversion = schemaConversions.firstWhere((el) => listEquals(el.sourceSchemaMap, sourceAddress));
+      if (mapConversion.destinationSchemaMap == null) throw Exception("Error: Conversion missing destination.");
+      return mapConversion;
     } catch (e) {
       print(e);
       throw Exception("Can't convert from that source address because no conversions where found for it.");
     }
   }
 
-  // int _debugLineCount = 0;
   void _handleConversionEvents(
-    List<List> sourceDataEvent,
-    ConvertSchemaMap convertConnection,
+    List<List> sourceMapPayload,
+    ConvertSchemaMap mapConversion,
     DataOrigin source,
     DataOrigin destination,
   ) {
-    // data coming from csv source
-    // _debugLineCount += event.length;
-    // print("data emitted from source stream: ${event.length} lines of data."); //  total: $_debugLineCount
-
     // convert data with converter
-    var data = _convert(sourceDataEvent, convertConnection, source, destination);
+    var data = _convert(sourceMapPayload, mapConversion, source, destination);
 
     // send to appwrite destination
     if (destinationSink != null) destinationSink!.add(data);
   }
 
   List<List> _convert(
-    List<List> sourceData,
-    ConvertSchemaMap convertConnection,
+    List<List> sourceMapPayload,
+    ConvertSchemaMap mapConversion,
     DataOrigin source,
     DataOrigin destination,
   ) {
     List<List> destinationData = [];
-    SchemaMap? destinationSchemaMap;
-    // get schema first
-    if (convertConnection.destinationSchemaMap != null) {
-      var result = getFromSchemaAddress(destination.getSchema(), convertConnection.destinationSchemaMap!);
-      if (result is SchemaMap) destinationSchemaMap = result;
-    }
-    if (destinationSchemaMap == null) throw Exception("No Destination SchemaMap");
-    // loop thru rows
-    for (int r = 0; r < sourceData.length; r++) {
-      var row = sourceData[r];
-      // loop thru fields
-      List destinationRow = [];
-      destinationSchemaMap.fields.forEach((field) {
-        if (field.types.isNotEmpty) {
-          var defaultValue =
-              field.types.first is SchemaDefaultValue ? (field.types.first as SchemaDefaultValue).defaultValue : null;
-          var nullable = field.types.first is SchemaNullable ? (field.types.first as SchemaNullable).nullable : false;
-          if (defaultValue != null || nullable) {
-            destinationRow.add(defaultValue);
-          } else {
-            // throw Exception("Conversion failed. No defaultValue for field and field isn't nullable.");
-            destinationRow.add(null);
-          }
-        } else {
-          // throw Exception("Conversion failed. A destination SchemaField has empty types.");
-          destinationRow.add(null);
-        }
-      });
-      for (int i = 0; i < row.length; i++) {
-        // convert data
-        var field = row[i];
-
-        // go through all connections and find the corresponding connection for the row's data
-        // find corresponding connection for the row's data
-        //    that is defined by... connection.sourceSchemaField address's last value matching row index
-        ConvertSchemaField connection;
-        try {
-          var connectionList = convertConnection.connections
-              .where((con) =>
-                  con.sourceSchemaField != null &&
-                  con.sourceSchemaField!.isNotEmpty &&
-                  con.sourceSchemaField!.last == i)
-              .toList();
-          connection = connectionList.first;
-          var typeAdapter = connection.typeAdapters.firstWhere((el) => el.sourceSchemaDataType.isOfType(field));
-          var convertedData = typeAdapter.convert(field);
-          if (connection.destinationSchemaField == null || connection.destinationSchemaField!.isEmpty) {
-            throw Exception("Conversion failed. Destination ConvertSchemaField is empty or null.");
-          }
-          destinationRow[connection.destinationSchemaField!.last] = convertedData;
-        } catch (e) {
-          print(e);
-          // if (destinationSchemaMap.fields[i].types.isNotEmpty) {
-          //   var defaultValue = destinationSchemaMap.fields[i].types.first is SchemaDefaultValue
-          //       ? (destinationSchemaMap.fields[i].types.first as SchemaDefaultValue).defaultValue
-          //       : null;
-          //   var nullable = destinationSchemaMap.fields[i].types.first is SchemaNullable
-          //       ? (destinationSchemaMap.fields[i].types.first as SchemaNullable).nullable
-          //       : false;
-          //   if (defaultValue != null || nullable) {
-          //     destinationRow[connection.destinationSchemaField!.last] = defaultValue;
-          //     // destinationRow.add(defaultValue);
-          //   } else {
-          //     throw Exception("Conversion failed. No conversionConnection provided, no defaultValue for field, "
-          //         "and field isn't nullable.");
-          //   }
-          // } else {
-          //   throw Exception("Conversion failed. No conversionConnection provided and types are empty "
-          //       "for a destination SchemaField");
-          // }
-
-          // continue;
-        }
+    SchemaMap destinationSchemaMap = _getDestinationSchemaMap(mapConversion, destination);
+    List defaultDestinationMapValues = _initializeDefaultValues(destinationSchemaMap);
+    
+    // loop thru rows of data event
+    for (int rowIndex = 0; rowIndex < sourceMapPayload.length; rowIndex++) {
+      List destinationMapValues = List.from(defaultDestinationMapValues);
+      for (ConvertSchemaField fieldConversion in mapConversion.fieldConversions) {
+        var convertedFieldData = fieldConversion.convert(sourceMapPayload[rowIndex]);
+        destinationMapValues[fieldConversion.destinationSchemaField!.last] = convertedFieldData;
       }
-      destinationData.add(destinationRow);
+
+      destinationData.add(destinationMapValues);
     }
     return destinationData;
+  }
+
+  List _initializeDefaultValues(SchemaMap destinationSchemaMap) {
+    List destinationRow = [];
+    for (SchemaField field in destinationSchemaMap.fields) {
+      if (field.types.isNotEmpty) {
+        var defaultValue =
+            field.types.first is SchemaDefaultValue ? (field.types.first as SchemaDefaultValue).defaultValue : null;
+        var nullable = field.types.first is SchemaNullable ? (field.types.first as SchemaNullable).nullable : false;
+        if (defaultValue != null || nullable) {
+          destinationRow.add(defaultValue);
+        } else {
+          // throw Exception("Conversion failed. No defaultValue for field and field isn't nullable.");
+          destinationRow.add(null);
+        }
+      } else {
+        // throw Exception("Conversion failed. A destination SchemaField has empty types.");
+        destinationRow.add(null);
+      }
+    }
+    return destinationRow;
+  }
+
+  SchemaMap _getDestinationSchemaMap(ConvertSchemaMap convertConnection, DataOrigin destination) {
+    // get destinationSchemaMap first
+    if (convertConnection.destinationSchemaMap != null) {
+      var result = getFromSchemaAddress(destination.getSchema(), convertConnection.destinationSchemaMap!);
+      if (result is SchemaMap) return result;
+    }
+    throw Exception("No Destination SchemaMap");
   }
 }

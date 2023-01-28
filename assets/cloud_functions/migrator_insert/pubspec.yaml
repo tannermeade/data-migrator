@@ -1,0 +1,15 @@
+name: appwrite_data_migrator_function
+description: Dart starter for Appwrite function.
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+dependencies: 
+  # dart_appwrite: ^6.0.0
+  console_flutter_sdk:
+    path: '../../../appwrite_console_flutter_sdk'
+      
+dev_dependencies:
+  pedantic: ^1.9.0

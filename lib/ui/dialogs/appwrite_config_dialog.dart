@@ -6,7 +6,7 @@ import 'package:data_migrator/ui/common/alpine/alpine_button.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_colors.dart';
 import 'package:data_migrator/ui/common/alpine/alpine_close_button.dart';
 import 'package:data_migrator/ui/common/values/enums.dart';
-import 'package:data_migrator/ui/common/widgets/appwrite_project.dart';
+import 'package:data_migrator/ui/common/widgets/selectable_widget.dart';
 import 'package:data_migrator/ui/common/widgets/schema_map_widget.dart';
 import 'package:data_migrator/ui/dialog_handler.dart';
 import 'package:data_migrator/ui/common/values/providers.dart';
@@ -113,10 +113,14 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
             children: [
               if (!appwriteOrigin.isAuthenticated) ..._buildLogin(appwriteOrigin),
               if (appwriteOrigin.isAuthenticated && !_isLoggingIn) ..._buildProjects(appwriteOrigin),
+              if (appwriteOrigin.isAuthenticated && !_isLoggingIn && appwriteOrigin.selectedProject != null)
+                ..._buildDatabases(appwriteOrigin),
               if (appwriteOrigin.isAuthenticated && appwriteOrigin.selectedProject != null)
                 ..._buildApiKey(appwriteOrigin),
               if (appwriteOrigin.isAuthenticated && !_isLoggingIn) _buildBundleSize(appwriteOrigin),
-              if (appwriteOrigin.isAuthenticated && appwriteOrigin.selectedProject != null)
+              if (appwriteOrigin.isAuthenticated &&
+                  appwriteOrigin.selectedProject != null &&
+                  appwriteOrigin.selectedDatabase != null)
                 ..._importCollections(appwriteOrigin),
               const SizedBox(height: 10),
               if (appwriteOrigin.isAuthenticated) _buildBottomBar(appwriteOrigin),
@@ -238,13 +242,20 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
   List<Widget> _buildProjects(AppwriteOrigin appwriteOrigin) {
     return [
       const Text(
-        "Projects",
+        "Select Project",
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w200,
         ),
       ),
-      if (appwriteOrigin.selectedProject != null) ProjectWidget(project: appwriteOrigin.selectedProject!, onTap: () {}),
+      if (appwriteOrigin.selectedProject != null)
+        SelectableWidget(
+          // project: appwriteOrigin.selectedProject!,
+          onTap: () {},
+          name: appwriteOrigin.selectedProject!.name,
+          selected: appwriteOrigin.selectedProject != null &&
+              appwriteOrigin.selectedProject!.$id == appwriteOrigin.selectedProject!.$id,
+        ),
       if (appwriteOrigin.selectedProject == null)
         FutureBuilder<aw.ProjectList>(
           future: appwriteOrigin.getProjects(),
@@ -252,17 +263,74 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
             if (snapshot.hasData && snapshot.data != null) {
               return Column(
                   children: snapshot.data!.projects
-                      .map((p) => ProjectWidget(
-                            project: p,
+                      .map((p) => SelectableWidget(
                             onTap: () async {
                               await appwriteOrigin.selectProject(p);
                               setState(() {});
                             },
+                            name: p.name,
+                            selected: false,
                           ))
                       .toList());
             }
             return Row(
               children: const [CircularProgressIndicator.adaptive(), SizedBox(width: 10), Text("loading projects")],
+            );
+          },
+        ),
+      const SizedBox(height: 10),
+    ];
+  }
+
+  List<Widget> _buildDatabases(AppwriteOrigin appwriteOrigin) {
+    return [
+      const Text(
+        "Select Database",
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w200,
+        ),
+      ),
+      if (appwriteOrigin.selectedDatabase != null)
+        SelectableWidget(
+          onTap: () {},
+          name: appwriteOrigin.selectedDatabase!.name,
+          selected: appwriteOrigin.selectedDatabase != null &&
+              appwriteOrigin.selectedDatabase!.$id == appwriteOrigin.selectedDatabase!.$id,
+        ),
+      if (appwriteOrigin.selectedDatabase == null)
+        FutureBuilder<aw.DatabaseList>(
+          future: appwriteOrigin.getDatabases(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data != null) {
+              return Column(
+                  children: snapshot.data!.databases
+                      .map((db) => SelectableWidget(
+                            name: db.name,
+                            selected: false,
+                            onTap: () {
+                              appwriteOrigin.selectDatabase(db);
+                              setState(() {});
+                            },
+                          ))
+                      .toList());
+            }
+            if (appwriteOrigin.selectedProject == null) {
+              return Row(
+                children: [
+                  Text(
+                    "Select a project first",
+                    style: TextStyle(
+                      color: AlpineColors.textColor1,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w200,
+                    ),
+                  )
+                ],
+              );
+            }
+            return Row(
+              children: const [CircularProgressIndicator.adaptive(), SizedBox(width: 10), Text("loading databases")],
             );
           },
         ),
@@ -303,6 +371,16 @@ class _AppwriteConfigDialogState extends State<AppwriteConfigDialog> {
         future: appwriteOrigin.getRemoteSchema(),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data != null) {
+            if (snapshot.data!.isEmpty) {
+              return Text(
+                "No collections to import.",
+                style: TextStyle(
+                  color: AlpineColors.textColor1,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w200,
+                ),
+              );
+            }
             return Column(
                 children: snapshot.data!
                     .map((s) => SchemaMapWidget(

@@ -139,6 +139,7 @@ class AppwritePipelineDestination {
     var file = await _createFile(collectionId, bundleNum);
     List<String> fields = schemaMap.fields.map((f) => f.title).toList();
     String fieldStr = '["' + fields.join('","') + '"]';
+    String databaseId = adapter.config.selectedDatabase != null? adapter.config.selectedDatabase!.$id : "";
     String destination = schemaMap.classification == SchemaClassification.appwriteUsers ? "users" : "database";
     String header = '{"destination":"' +
         destination +
@@ -146,6 +147,8 @@ class AppwritePipelineDestination {
         fieldStr +
         ',\n"collectionId":"' +
         collectionId +
+        '",\n"databaseId":"' +
+        databaseId +
         '",\n"data":[\n';
     await file.writeAsString(header);
     return file;
@@ -208,6 +211,7 @@ class AppwritePipelineDestination {
       // write: ['role:all'],
     );
     uploadEvent.awFileGroup.uploadedFiles.add(f);
+    await f;
     return f;
   }
 

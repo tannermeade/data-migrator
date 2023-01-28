@@ -54,6 +54,7 @@ class AppwriteAdapter {
     print("done");
     config.session = null;
     config.selectedProject = null;
+    config.selectedDatabase = null;
     return result;
   }
 
@@ -71,16 +72,12 @@ class AppwriteAdapter {
     config.endpoint = endpoint;
     print("logged in...");
     print(config.session != null ? config.session!.toMap() : config.session);
-
-    await selectFirstDatabase();
   }
 
-  Future selectFirstDatabase() async {
-    var dbList = await Databases(config.client, databaseId: '').list();
-    if (dbList.databases.isNotEmpty) {
-      config.selectedDatabase = dbList.databases.first;
-    }
-  }
+  void selectDatabase(models.Database database) => config.selectedDatabase = database;
+
+  Future<models.DatabaseList> getDatabases() async =>
+      await Databases(config.client, databaseId: config.selectedDatabase!.$id).list();
 
   Future selectProject(models.Project project) async {
     config.client.setProject(project.$id);
@@ -88,11 +85,7 @@ class AppwriteAdapter {
     config.selectedProject = project;
   }
 
-  Future<models.ProjectList> getProjects() async {
-    var proj = Projects(config.client);
-    var projects = await proj.list();
-    return projects;
-  }
+  Future<models.ProjectList> getProjects() async => await Projects(config.client).list();
 
   Future<models.Collection?> getCollection(SchemaMap schemaObj) async {
     if (config.selectedDatabase == null) throw Exception('No Database Selected');
@@ -126,6 +119,7 @@ class AppwriteAdapter {
       name: schemaObj.name,
       permission:
           schemaObj.permissionModel != null ? _permissionModelToStr(schemaObj.permissionModel!.level) : "document",
+      // documentSecurity: false,
       read: schemaObj.permissionModel != null ? schemaObj.permissionModel!.readAccess : [],
       write: schemaObj.permissionModel != null ? schemaObj.permissionModel!.writeAccess : [],
     );
@@ -154,6 +148,7 @@ class AppwriteAdapter {
       name: schemaObj.name,
       permission:
           schemaObj.permissionModel != null ? _permissionModelToStr(schemaObj.permissionModel!.level) : "document",
+      // documentSecurity: false,
       // read: schemaObj.permissionModel != null ? schemaObj.permissionModel!.readAccess : [],
       // write: schemaObj.permissionModel != null ? schemaObj.permissionModel!.writeAccess : [],
     );
@@ -215,7 +210,10 @@ class AppwriteAdapter {
         if (recreateAttribute) {
           fieldsChanged.add(field);
           if (commitEdits) {
-            await dbs.deleteAttribute(collectionId: collectionId, key: attr["key"]);
+            await dbs.deleteAttribute(
+              collectionId: collectionId,
+              key: attr["key"],
+            );
             var resultModel = await _createAttribute(dbs, collectionId, field);
             if (resultModel == null) {
               throw Exception("An error happened when recreating attribute for collection($collectionId). "
@@ -228,7 +226,10 @@ class AppwriteAdapter {
         print("no SchemaField found for attribute... it needs to be deleted");
         try {
           if (commitEdits) {
-            await dbs.deleteAttribute(collectionId: collectionId, key: attr["key"]);
+            await dbs.deleteAttribute(
+              collectionId: collectionId,
+              key: attr["key"],
+            );
           }
           fieldsChanged.add(SchemaField(
             title: attr["key"] ?? "NO_FIELD_KEY",
@@ -459,6 +460,8 @@ class AppwriteAdapter {
       migratorDeployment = await _createDeployment(functions, migratorFunct.$id);
     }
 
+    // models.Variable blankVar =
+    //     models.Variable($id: "", $createdAt: "", $updatedAt: "", key: "", value: "", functionId: "");
     // Validate Cloud Function Attributes
     if (migratorFunct.vars["APPWRITE_ENDPOINT"] != config.endpoint ||
         migratorFunct.vars["APPWRITE_FUNCTION_PROJECT_ID"] != config.selectedProject!.$id ||
@@ -497,7 +500,7 @@ class AppwriteAdapter {
   }) async {
     var deployment = await functions.createDeployment(
       functionId: functionId,
-      entrypoint: 'src/index.py',
+      entrypoint: 'lib/main.dart',
       activate: true,
       code: await _migratorCode,
     );
@@ -568,7 +571,7 @@ class AppwriteAdapter {
         functionId: config.migratorFunctionId,
         name: "Migrator Insert Function",
         execute: [],
-        runtime: "python-3.10",
+        runtime: "dart-2.17",
         timeout: 900,
         vars: {
           "APPWRITE_ENDPOINT": config.endpoint,
@@ -614,6 +617,7 @@ class AppwriteAdapter {
       await storage.createBucket(
         bucketId: config.bucketId,
         name: "DataMigrator Upload Bucket",
+        // fileSecurity: false,
         permission: _permissionModelToStr(
           PermissionLevel.schema,
           appwritePermissionType: AppwritePermissionType.storage,
@@ -676,9 +680,12 @@ class AppwriteAdapter {
     if (fieldChange.changeType != ChangeType.delete && fieldChange.changeType != ChangeType.update) {
       throw Exception("Can't delete an attribute that isn't a delete change.");
     }
-    
+
     var dbs = Databases(config.client, databaseId: config.selectedDatabase!.$id);
-    await dbs.deleteAttribute(collectionId: collectionId, key: fieldChange.id);
+    await dbs.deleteAttribute(
+      collectionId: collectionId,
+      key: fieldChange.id,
+    );
   }
 
   Future updateAttributeFromChange(String collectionId, SchemaChange fieldChange) async {
@@ -837,8 +844,9 @@ class AppwriteAdapter {
       collectionId: schemaMapChange.id!,
       name: name,
       permission: _permissionModelToStr(permModel.level),
-      read: permModel != null ? permModel.readAccess : [],
-      write: permModel != null ? permModel.writeAccess : [],
+      // documentSecurity: false,
+      // read: permModel != null ? permModel.readAccess : [],
+      // write: permModel != null ? permModel.writeAccess : [],
     );
 
     return collection;
@@ -867,6 +875,7 @@ class AppwriteAdapter {
       collectionId: schemaMapChange.id != null && schemaMapChange.id!.isNotEmpty ? schemaMapChange.id! : "unique()",
       name: name,
       permission: _permissionModelToStr(permModel.level),
+      // documentSecurity: false,
       read: permModel != null ? permModel.readAccess : [],
       write: permModel != null ? permModel.writeAccess : [],
     );
